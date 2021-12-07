@@ -1,16 +1,9 @@
 from bs4 import BeautifulSoup
 import requests
 from selenium import webdriver
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
-from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.firefox.options import Options
-import base64
 import time
-from PIL import Image
-from io import BytesIO
-from selenium.webdriver.common.action_chains import ActionChains
 
 
 class MemeScraper:
