@@ -4,7 +4,6 @@ from selenium import webdriver
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.firefox.options import Options
-import time
 import random
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
@@ -82,8 +81,8 @@ class MemeScraper:
             self.meme_index_dict[memeIndex] = memeName
 
     def __init__(self) -> None:
-        self.update_available_memes()
         self.initiateDriver()
+        self.update_available_memes()
 
     def __del__(self):
         try:

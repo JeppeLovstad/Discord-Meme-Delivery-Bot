@@ -10,6 +10,7 @@ class CustomCommandHandler():
 
     def addCommand(self, command: str, response: str) -> bool:
         try:
+            # use set for no duplicates
             self.command_dict.setdefault(command, set()).add(response)
             return True
         except Exception as e:
@@ -28,12 +29,13 @@ class CustomCommandHandler():
     def getResponseToMessage(self, message: str) -> str:
         commands = message.split()
         commands_expanded = []
+
+        # Get all possible slices
         for i, j in combinations(range(len(commands) + 1), 2):
             commands_expanded.append(" ".join(commands[i:j]))
+        # Get responses to commands, filter away None
         valid_commands = list(filter(lambda x: x is not None, map(
             self.getResponseToCommand, commands_expanded)))
-        # print(valid_commands)
-        # print(commands_expanded)
         if valid_commands:
             return '\n'.join(valid_commands)
         else:
@@ -52,6 +54,7 @@ class CustomCommandHandler():
 
     def updateFile(self) -> bool:
         try:
+            # Cast to list, since set cant be json dumped
             intermediateDict = {k: list(v)
                                 for k, v in self.command_dict.items()}
             with open(self.file_name, "w") as outfile:
@@ -64,10 +67,11 @@ class CustomCommandHandler():
     def __init__(self) -> None:
         try:
             with open(self.file_name) as infile:
+                # cast lists to sets
                 self.command_dict = {k: set(v) for k, v in json.load(infile)}
         except FileNotFoundError:
             pass
-        # file broken use empty
+        # file broken continue with new file
         except Exception:
             pass
 

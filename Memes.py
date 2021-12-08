@@ -3,12 +3,16 @@ import os
 import GetMeme
 from CustomCommandHandler import CustomCommandHandler
 from io import BytesIO
-import base64
 
 client = discord.Client()
 scraper = GetMeme.MemeScraper()
 ccHandler = CustomCommandHandler()
-command_dict = {}
+try:
+    with open(".env", "r") as file:
+        TOKEN = file.readline()
+except:
+    print("no token, shutting down")
+    exit()
 
 
 @client.event
@@ -64,5 +68,4 @@ async def on_message(message):
         if ccResponse:
             await message.channel.send(ccResponse)
 
-# print(os.getenv('DISCORD_TOKEN'))
-client.run(REDACTED)
+client.run(TOKEN)
