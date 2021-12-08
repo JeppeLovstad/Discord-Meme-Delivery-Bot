@@ -66,13 +66,17 @@ class CustomCommandHandler():
 
     def __init__(self) -> None:
         try:
-            with open(self.file_name) as infile:
+            with open(self.file_name, "r") as infile:
                 # cast lists to sets
-                self.command_dict = {k: set(v) for k, v in json.load(infile)}
+                self.command_dict = {k: set(v)
+                                     for k, v in json.load(infile).items()}
         except FileNotFoundError:
+            print("no command file")
             pass
         # file broken continue with new file
-        except Exception:
+        except Exception as e:
+            print(e)
+            print("command file load failed")
             pass
 
     # Cannot call open in del
@@ -82,7 +86,7 @@ class CustomCommandHandler():
     #         json.dump(self.command_dict, outfile)
 
 
-# c = CustomCommandHandler()
+#c = CustomCommandHandler()
 # print(c.addCommand("test", "wow much so"))
 # print(c.addCommand("test", "wow much too"))
 # print(c.deleteCommand("test"))
