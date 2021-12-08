@@ -69,8 +69,7 @@ class MemeScraper:
         except TimeoutException:
             # if timeout exception was raised - it may be safe to
             # assume loading has finished, however this may not
-            # always be the case, use with caution, otherwise handle
-            # appropriately.
+            # always be the case, use with caution, otherwise handle appropriately.
             pass
 
     def update_available_memes(self):
@@ -87,8 +86,10 @@ class MemeScraper:
         self.initiateDriver()
 
     def __del__(self):
-        self.driver.quit()
-
+        try:
+            self.driver.quit()
+        except:
+            pass
 
 # m = MemeScraper()
 # # m.updateImage()
