@@ -4,11 +4,23 @@ import GetMeme
 from CustomCommandHandler import CustomCommandHandler
 from io import BytesIO
 from discord.ext import commands
+import json
+import re
 
-bot = commands.Bot(command_prefix='!')
+command_prefix = "!"
+bot = commands.Bot(command_prefix=command_prefix)
 scraper = GetMeme.MemeScraper()
-ccHandler = CustomCommandHandler()
+ccHandler = CustomCommandHandler(file_name="commands.json")
+reactionHandler = CustomCommandHandler(file_name="reactions.json")
 
+try:
+    with open("emoji_map.json", "r") as infile:
+        # cast lists to sets
+        emoji_dict = {k: v
+                      for k, v in json.load(infile).items()}
+except FileNotFoundError:
+    print("no command file")
+    pass
 
 try:
     with open(".env", "r") as file:
@@ -19,9 +31,49 @@ except:
 
 
 @bot.command()
+async def addreaction(ctx, arg1: str, arg2):
+    response = arg2
+    if response == "":
+        await ctx.send("Cannot add empty reaction")
+        return
+
+    custom_emoji = re.match(r'<:\w*:\d*>', response)
+    default_emoji = emoji_dict.get(arg2)
+    #print(arg2, default_emoji)
+
+    if custom_emoji or default_emoji:
+        await ctx.send("Non valid reaction emoji")
+        return
+
+    added = reactionHandler.addCommand(arg1, arg2)
+
+    if added:
+        await ctx.send("reaction added")
+    else:
+        await ctx.send("adding reaction failed")
+
+
+@bot.command()
+async def deletereaction(ctx, arg1: str):
+    if arg1 == "":
+        await ctx.send("Cannot delete empty reaction")
+        return
+    deleted = reactionHandler.deleteCommand(arg1)
+    if deleted:
+        await ctx.send("reaction deleted")
+    else:
+        await ctx.send("deleting reaction failed")
+
+
+@bot.command()
 async def addcommand(ctx, arg1: str, *args):
-    added = ccHandler.addCommand(
-        arg1, " ".join(args))
+    response = " ".join(args)
+    if response == "":
+        await ctx.send("Cannot add empty response")
+        return
+
+    added = ccHandler.addCommand(arg1, response)
+
     if added:
         await ctx.send("command added")
     else:
@@ -30,6 +82,9 @@ async def addcommand(ctx, arg1: str, *args):
 
 @bot.command()
 async def deletecommand(ctx, arg1: str):
+    if arg1 == "":
+        await ctx.send("Cannot delete empty command")
+        return
     deleted = ccHandler.deleteCommand(arg1)
     if deleted:
         await ctx.send("command deleted")
@@ -67,12 +122,21 @@ async def CustomCommandResponder(message):
         return
     if message.content == "":
         return
-    if message.author.name == 'Lasse Morgen':
-        await message.add_reaction(":LasseWut:912650302589648907")
+    # legacy code do not delete
+    # if message.author.name == 'Lasse Morgen':
+    #    await message.add_reaction("<:LasseWut:912650302589648907>")
 
-    ccResponse = ccHandler.getResponseToMessage(message.content)
-    if ccResponse:
-        await message.channel.send(ccResponse)
+    if not message.content.startswith(command_prefix):
+        ccResponse = ccHandler.getResponseToMessage(message.content)
+        if ccResponse:
+            await message.channel.send(ccResponse)
+
+        reactionResponse = reactionHandler.getResponseToMessage(
+            message.content,
+            single_response=True)
+
+        if reactionResponse:
+            await message.add_reaction(reactionResponse)
 
 
 bot.run(TOKEN)

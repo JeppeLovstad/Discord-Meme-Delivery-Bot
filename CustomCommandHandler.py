@@ -5,8 +5,9 @@ import random
 
 
 class CustomCommandHandler():
-    command_dict = {}
-    file_name = "commands.json"
+    #command_dict = {}
+    #reactions_dict = {}
+    #file_name = ""
 
     def addCommand(self, command: str, response: str) -> bool:
         try:
@@ -28,7 +29,7 @@ class CustomCommandHandler():
         except:
             return False
 
-    def getResponseToMessage(self, message: str) -> str:
+    def getResponseToMessage(self, message: str, single_response: bool = False) -> str:
         commands = message.split()
         commands_expanded = []
 
@@ -38,8 +39,10 @@ class CustomCommandHandler():
         # Get responses to commands, filter away None
         valid_commands = list(filter(lambda x: x is not None, map(
             self.getResponseToCommand, commands_expanded)))
-        if valid_commands:
+        if valid_commands and not single_response:
             return '\n'.join(valid_commands)
+        elif valid_commands and single_response:
+            return random.choice(valid_commands)
         else:
             return None
 
@@ -66,7 +69,9 @@ class CustomCommandHandler():
             print(e)
             return False
 
-    def __init__(self) -> None:
+    def __init__(self, file_name: str = "commands.json") -> None:
+        self.file_name = file_name
+        self.command_dict = {}
         try:
             with open(self.file_name, "r") as infile:
                 # cast lists to sets
