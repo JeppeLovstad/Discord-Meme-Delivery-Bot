@@ -12,6 +12,7 @@ class CustomCommandHandler():
         try:
             # use set for no duplicates
             self.command_dict.setdefault(command, set()).add(response)
+            self.updateFile()
             return True
         except Exception as e:
             print(e)
@@ -21,6 +22,7 @@ class CustomCommandHandler():
         try:
             if command in self.command_dict:
                 self.command_dict.pop(command)
+                self.updateFile()
                 return True
             return False
         except:
