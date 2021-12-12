@@ -112,9 +112,9 @@ async def memelist(ctx):
 async def meme(ctx, arg: str = "-1"):
     send = ""
     if arg != "-1" and arg.isdigit():
-        send = scraper.updateImage(int(arg))
+        send = await scraper.getMeme(int(arg))
     else:
-        send = scraper.updateImage()
+        send = await scraper.getMeme()
     await ctx.send(send)
 
 
