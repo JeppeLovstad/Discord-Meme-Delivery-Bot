@@ -8,6 +8,7 @@ import random
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
 import asyncio
+from selenium.webdriver.firefox.service import Service
 
 
 class MemeScraper:
@@ -86,10 +87,14 @@ class MemeScraper:
     def initiateDriver(self):
         options = Options()
         options.headless = True
+        service = Service(executable_path='geckodriver.exe',
+                          log_path="nul")
         driver = webdriver.Firefox(
             options=options,
-            executable_path='geckodriver.exe',
-            service_log_path="nul")
+            service=service
+            # executable_path='geckodriver.exe',
+            # service_log_path="nul"
+        )
         driver.implicitly_wait(0)
         driver.set_window_size(1920, 1080)
         # driver.get(self.meme_URL)
