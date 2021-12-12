@@ -41,7 +41,8 @@ async def addreaction(ctx, arg1: str, arg2):
     default_emoji = emoji_dict.get(arg2)
     #print(arg2, default_emoji)
 
-    if custom_emoji or default_emoji:
+    if not (custom_emoji or default_emoji):
+        print(arg2, custom_emoji, default_emoji)
         await ctx.send("Non valid reaction emoji")
         return
 
@@ -90,6 +91,13 @@ async def deletecommand(ctx, arg1: str):
         await ctx.send("command deleted")
     else:
         await ctx.send("deleting command failed")
+
+
+@bot.command()
+async def customcommandslist(ctx):
+    message_to_send = '\n'.join(
+        [f"{v}" for v in ccHandler.command_dict.keys() if v != ""])
+    await ctx.send(message_to_send)
 
 
 @bot.command()

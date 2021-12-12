@@ -7,14 +7,57 @@ from selenium.webdriver.firefox.options import Options
 import random
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
+import asyncio
 
 
 class MemeScraper:
-    meme_URL: str = 'https://imgflip.com/ai-meme'
+    #meme_URL: str = 'https://imgflip.com/ai-meme'
     meme_index_dict: dict = {}
     driver: driver = None
+    producing_meme = False
 
-    def updateImage(self, meme_index: int = None, ) -> str:
+    def __init__(self, meme_URL: str = 'https://imgflip.com/ai-meme', queue_max_size: int = 5, queue_refresh_threshold: int = 2) -> None:
+        self.queue_max_size = queue_max_size
+        self.queue_refresh_threshold = queue_refresh_threshold
+        self.meme_URL = meme_URL
+        self.initiateDriver()
+        self.update_available_memes()
+        self.intilializeQueue(self.queue_max_size,
+                              self.queue_refresh_threshold)
+        self.StartMemeProducer()
+
+    def intilializeQueue(self, queue_max_size, queue_refresh_threshold) -> None:
+        self.queue_refresh_threshold = queue_refresh_threshold
+        self.meme_queue = asyncio.Queue(maxsize=queue_max_size)
+
+    def StartMemeProducer(self):
+        #print("start accessed")
+        asyncio.create_task(self.memeProducer())
+
+    async def memeProducer(self) -> None:
+        meme_queue = self.meme_queue
+        if meme_queue.qsize() <= self.queue_refresh_threshold and not self.producing_meme:
+            self.producing_meme = True
+            while not meme_queue.full():
+                await asyncio.sleep(3)
+                print("producer starting")
+                new_meme = await self.produceMeme()
+                await meme_queue.put(new_meme)
+                print("producer done")
+            self.producing_meme = False
+        print("producer shutting down")
+
+    async def getMeme(self) -> str:
+        print("getting meme")
+        print(self.meme_queue)
+        meme = await self.meme_queue.get()
+        self.meme_queue.task_done()
+        self.StartMemeProducer()
+        return meme
+
+        # Expand to other sites
+        # getMemeStrategy at some point?
+    async def produceMeme(self, meme_index: int = None) -> None:
         driver = self.driver
         driver.get(self.meme_URL)
         meme_number = len(self.meme_index_dict)-1
@@ -37,7 +80,7 @@ class MemeScraper:
         return driver.find_element(By.CLASS_NAME,
                                    'img-code').get_attribute("value")
 
-    def getAvailableMemes(self) -> dict:
+    def listAvailableMemes(self) -> dict:
         return self.meme_index_dict
 
     def initiateDriver(self):
@@ -45,7 +88,8 @@ class MemeScraper:
         options.headless = True
         driver = webdriver.Firefox(
             options=options,
-            executable_path='geckodriver.exe')
+            executable_path='geckodriver.exe',
+            service_log_path="nul")
         driver.implicitly_wait(0)
         driver.set_window_size(1920, 1080)
         # driver.get(self.meme_URL)
@@ -80,18 +124,31 @@ class MemeScraper:
             memeIndex = button.get("data-index")
             self.meme_index_dict[memeIndex] = memeName
 
-    def __init__(self) -> None:
-        self.initiateDriver()
-        self.update_available_memes()
-
     def __del__(self):
         try:
+            self.driver.close()
             self.driver.quit()
-        except:
-            pass
 
-# m = MemeScraper()
-# # m.updateImage()
-# messages = '\n'.join([f"{k} : {v}" for k,
-#                       v in m.meme_index_dict.items()])
-# print(messages)
+        except:
+            print("could not quit driver")
+
+
+async def main():
+    m = MemeScraper(queue_max_size=10, queue_refresh_threshold=4)
+    # while True:
+    await asyncio.sleep(30)
+    print(await m.getMeme())
+    print(await m.getMeme())
+    print(await m.getMeme())
+    print(await m.getMeme())
+    print(await m.getMeme())
+    print(await m.getMeme())
+    print(await m.getMeme())
+
+if __name__ == "__main__":
+    asyncio.run(main())
+
+    # # m.produceMeme()
+    # messages = '\n'.join([f"{k} : {v}" for k,
+    #                       v in m.meme_index_dict.items()])
+    # print(messages)
