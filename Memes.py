@@ -9,9 +9,9 @@ import re
 
 command_prefix = "!"
 bot = commands.Bot(command_prefix=command_prefix)
-scraper = GetMeme.MemeScraper()
 ccHandler = CustomCommandHandler(file_name="commands.json")
 reactionHandler = CustomCommandHandler(file_name="reactions.json")
+scraper = None
 
 try:
     with open("emoji_map.json", "r") as infile:
@@ -112,7 +112,7 @@ async def memelist(ctx):
 async def meme(ctx, arg: str = "-1"):
     send = ""
     if arg != "-1" and arg.isdigit():
-        send = await scraper.getMeme(int(arg))
+        send = await scraper.produceMeme(int(arg))
     else:
         send = await scraper.getMeme()
     await ctx.send(send)
@@ -121,6 +121,8 @@ async def meme(ctx, arg: str = "-1"):
 @bot.event
 async def on_ready():
     bot.get_all_channels()
+    global scraper
+    scraper = GetMeme.MemeScraper()
     print('We have logged in as {0.user}'.format(bot))
 
 

@@ -40,7 +40,7 @@ class MemeScraper:
         if meme_queue.qsize() <= self.queue_refresh_threshold and not self.producing_meme:
             self.producing_meme = True
             while not meme_queue.full():
-                await asyncio.sleep(3)
+                await asyncio.sleep(1)
                 print("producer starting")
                 new_meme = await self.produceMeme()
                 await meme_queue.put(new_meme)
@@ -58,7 +58,7 @@ class MemeScraper:
 
         # Expand to other sites
         # getMemeStrategy at some point?
-    async def produceMeme(self, meme_index: int = None) -> None:
+    async def produceMeme(self, meme_index: int = None) -> str:
         driver = self.driver
         driver.get(self.meme_URL)
         meme_number = len(self.meme_index_dict)-1
@@ -87,6 +87,7 @@ class MemeScraper:
     def initiateDriver(self):
         options = Options()
         options.headless = True
+        options.binary_location = r'C:\Users\jml\AppData\Local\Mozilla Firefox\firefox.exe'
         service = Service(executable_path='geckodriver.exe',
                           log_path="nul")
         driver = webdriver.Firefox(
