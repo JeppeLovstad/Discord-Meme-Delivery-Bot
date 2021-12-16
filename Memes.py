@@ -6,6 +6,7 @@ from io import BytesIO
 from discord.ext import commands
 import json
 import re
+from Pepe import get_pepe
 
 command_prefix = "!"
 bot = commands.Bot(command_prefix=command_prefix)
@@ -147,6 +148,9 @@ async def CustomCommandResponder(message):
 
         if reactionResponse:
             await message.add_reaction(reactionResponse)
-
+    else: # idk, kunne ikke lige lure hvor fanden du lyttede efter '!' commands
+        if message.content == '!pepe':
+            pepe = get_pepe()
+            await message.channel.send(pepe)
 
 bot.run(TOKEN)
