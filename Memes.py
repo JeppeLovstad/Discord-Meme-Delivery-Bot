@@ -57,7 +57,7 @@ async def addreaction(ctx, arg1: str, arg2):
 @bot.command()
 async def pepe(ctx):
     pepe_img = pepe_urls.get_pepe()
-    ctx.send(pepe_img)
+    await ctx.send(pepe_img)
 
 @bot.command()
 async def deletereaction(ctx, arg1: str):
