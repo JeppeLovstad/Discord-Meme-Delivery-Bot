@@ -6,12 +6,13 @@ from io import BytesIO
 from discord.ext import commands
 import json
 import re
-from Pepe import get_pepe
+from Pepe import Pepe
 
 command_prefix = "!"
 bot = commands.Bot(command_prefix=command_prefix)
 ccHandler = CustomCommandHandler(file_name="commands.json")
 reactionHandler = CustomCommandHandler(file_name="reactions.json")
+pepe_urls = Pepe()
 scraper = None
 
 try:
@@ -29,7 +30,6 @@ try:
 except:
     print("no token, shutting down")
     exit()
-
 
 @bot.command()
 async def addreaction(ctx, arg1: str, arg2):
@@ -54,6 +54,10 @@ async def addreaction(ctx, arg1: str, arg2):
     else:
         await ctx.send("adding reaction failed")
 
+@bot.command()
+async def pepe(ctx):
+    pepe_img = pepe_urls.get_pepe()
+    ctx.send(pepe_img)
 
 @bot.command()
 async def deletereaction(ctx, arg1: str):

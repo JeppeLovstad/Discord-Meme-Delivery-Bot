@@ -12,7 +12,5 @@ class Pepe:
         img_tag = soup.find_all('img', class_='attachment-thumbnail size-thumbnail')
         self.pepe_imgs = [img['src'] for img in img_tag]
     
-    from Memes import bot
-    @bot.command()
-    def pepe(self):
+    def get_pepe(self):
         return choice(self.pepe_imgs)
