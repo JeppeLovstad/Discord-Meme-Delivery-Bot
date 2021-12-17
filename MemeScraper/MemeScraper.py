@@ -1,23 +1,23 @@
-from bs4 import BeautifulSoup
-import requests
 from selenium import webdriver
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.firefox.options import Options
-import random
+from selenium.webdriver.firefox.service import Service
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
+from bs4 import BeautifulSoup
+import requests
+import random
 import asyncio
-from selenium.webdriver.firefox.service import Service
 
 
 class MemeScraper:
     #meme_URL: str = 'https://imgflip.com/ai-meme'
     meme_index_dict: dict = {}
-    driver: driver = None
+    #driver: driver = None
     producing_meme = False
 
-    def __init__(self, meme_URL: str = 'https://imgflip.com/ai-meme', queue_max_size: int = 5, queue_refresh_threshold: int = 2) -> None:
+    def __init__(self, meme_URL: str = 'https://imgflip.com/ai-meme', queue_max_size: int = 10, queue_refresh_threshold: int = 4) -> None:
         self.queue_max_size = queue_max_size
         self.queue_refresh_threshold = queue_refresh_threshold
         self.meme_URL = meme_URL
@@ -87,18 +87,15 @@ class MemeScraper:
     def initiateDriver(self):
         options = Options()
         options.headless = True
-        options.binary_location = r'C:\Users\jml\AppData\Local\Mozilla Firefox\firefox.exe'
+        #options.binary_location = r'C:\Users\jml\AppData\Local\Mozilla Firefox\firefox.exe'
         service = Service(executable_path='geckodriver.exe',
                           log_path="nul")
         driver = webdriver.Firefox(
             options=options,
             service=service
-            # executable_path='geckodriver.exe',
-            # service_log_path="nul"
         )
         driver.implicitly_wait(0)
         driver.set_window_size(1920, 1080)
-        # driver.get(self.meme_URL)
         self.driver = driver
 
     def checkLoading(self, by: By, locator, stop_when_found: bool = False):

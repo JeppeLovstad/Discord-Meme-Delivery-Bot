@@ -1,11 +1,10 @@
-import discord
-import os
-import GetMeme
+from MemeScraper.MemeScraper import MemeScraper
 from CustomCommandHandler import CustomCommandHandler
-from io import BytesIO
 from discord.ext import commands
 import json
 import re
+import Googler
+import emoji
 
 command_prefix = "!"
 bot = commands.Bot(command_prefix=command_prefix)
@@ -14,20 +13,19 @@ reactionHandler = CustomCommandHandler(file_name="reactions.json")
 scraper = None
 
 try:
-    with open("emoji_map.json", "r") as infile:
-        # cast lists to sets
-        emoji_dict = {k: v
-                      for k, v in json.load(infile).items()}
-except FileNotFoundError:
-    print("no command file")
-    pass
-
-try:
     with open(".env", "r") as file:
         TOKEN = file.readline()
 except:
     print("no token, shutting down")
     exit()
+
+
+@bot.event
+async def on_ready():
+    bot.get_all_channels()
+    global scraper
+    scraper = MemeScraper()
+    print('We have logged in as {0.user}'.format(bot))
 
 
 @bot.command()
@@ -38,7 +36,8 @@ async def addreaction(ctx, arg1: str, arg2):
         return
 
     custom_emoji = re.match(r'<:\w*:\d*>', response)
-    default_emoji = emoji_dict.get(arg2)
+    default_emoji = emoji.emoji_lis(
+        arg2)[0]["emoji"] if emoji.emoji_count(arg2) == 1 else None
     #print(arg2, default_emoji)
 
     if not (custom_emoji or default_emoji):
@@ -101,6 +100,12 @@ async def customcommandslist(ctx):
 
 
 @bot.command()
+async def google(ctx, arg1: str, arg2: int = 1):
+    message_to_send = '\n'.join([x for x in Googler.google(arg1, arg2)])
+    await ctx.send(message_to_send)
+
+
+@bot.command()
 async def memelist(ctx):
     message_to_send = 'index: Meme name\n'
     message_to_send += '\n'.join([f"{k} : {v}" for k,
@@ -117,14 +122,13 @@ async def meme(ctx, arg: str = "-1"):
         send = await scraper.getMeme()
     await ctx.send(send)
 
-
 @bot.event
-async def on_ready():
-    bot.get_all_channels()
-    global scraper
-    scraper = GetMeme.MemeScraper()
-    print('We have logged in as {0.user}'.format(bot))
-
+async def on_command_error(ctx, error):
+    if isinstance(error, commands.CommandNotFound):
+        if ctx.message.author.name == 'Lasse Morgen':
+            await ctx.message.reply("you fool. you absolute buffoon. you think you can challenge me in my own realm? you think you can rebel against my authority? you dare come into my house and upturn my dining chairs and spill coffee grounds in my Keurig? you thought you were safe in your chain mail armor behind that screen of yours. I will take these laminate wood floor boards and destroy you. I didn’t want war. but i didn’t start it.")
+    else:
+        raise commands.CommandNotFound
 
 @bot.listen('on_message')
 async def CustomCommandResponder(message):
@@ -139,7 +143,7 @@ async def CustomCommandResponder(message):
     if not message.content.startswith(command_prefix):
         ccResponse = ccHandler.getResponseToMessage(message.content)
         if ccResponse:
-            await message.channel.send(ccResponse)
+            await message.reply(ccResponse)
 
         reactionResponse = reactionHandler.getResponseToMessage(
             message.content,
