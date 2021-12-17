@@ -5,11 +5,13 @@ import json
 import re
 import Googler
 import emoji
+from Pepe import Pepe
 
 command_prefix = "!"
 bot = commands.Bot(command_prefix=command_prefix)
 ccHandler = CustomCommandHandler(file_name="commands.json")
 reactionHandler = CustomCommandHandler(file_name="reactions.json")
+pepe_urls = Pepe()
 scraper = None
 
 try:
@@ -52,6 +54,10 @@ async def addreaction(ctx, arg1: str, arg2):
     else:
         await ctx.send("adding reaction failed")
 
+@bot.command()
+async def pepe(ctx):
+    pepe_img = pepe_urls.get_pepe()
+    await ctx.send(pepe_img)
 
 @bot.command()
 async def deletereaction(ctx, arg1: str):
@@ -151,6 +157,5 @@ async def CustomCommandResponder(message):
 
         if reactionResponse:
             await message.add_reaction(reactionResponse)
-
 
 bot.run(TOKEN)
