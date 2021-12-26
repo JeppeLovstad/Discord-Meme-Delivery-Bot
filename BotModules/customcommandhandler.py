@@ -4,7 +4,7 @@ from itertools import combinations
 import random
 from discord.ext import commands
 import discord
-
+#from functools import wraps
 
 class CustomCommandHandler(commands.Cog):
     
@@ -21,6 +21,11 @@ class CustomCommandHandler(commands.Cog):
         self.file_name = config["json_file_location"] if "json_file_location" in config else ""
         self.command_dict = {}
         self.initiateFile()
+        #self.add_bot_command(bot)
+        
+        
+    #def add_bot_command(self,bot: commands.Bot):
+     #   bot.add_command
     
     def initiateFile(self):
         try:
@@ -105,8 +110,10 @@ class CustomCommandHandler(commands.Cog):
         for i, j in combinations(range(len(commands) + 1), 2):
             commands_expanded.append(" ".join(commands[i:j]))
         # Get responses to commands, filter away None
-        valid_commands = list(filter(lambda x: x is not None, map(
+        valid_commands = list(filter(lambda x: x != "", map(
             self.getResponseToCommand, commands_expanded)))
+        
+        
         if valid_commands and not single_response:
             return '\n'.join(valid_commands)
         elif valid_commands and single_response:
