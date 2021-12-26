@@ -20,11 +20,6 @@ class MemeBot:
     
     def __init__(self, config:dict, bot: commands.Bot ):
         self.command_prefix = config["DISCORD"]["command_prefix"]
-        # ccHandler = CustomCommandHandler(file_name="commands.json")
-        # reactionHandler = CustomCommandHandler(file_name="reactions.json")
-        # pepe_urls = Pepe()
-        # scraper = aimeme.AIMemeGenerator()
-        #aimemes = self.import_bot_module("BotModules.aimeme","AIMemeGenerator")
         self.initiateBotModules(config, bot)
         self.registerDefaultFunctions(bot)
         self.bot = bot
@@ -119,13 +114,7 @@ class MemeBot:
     #         await ctx.send("reaction added")
     #     else:
     #         await ctx.send("adding reaction failed")
-
-
-
-    # @bot.command()
-    # async def gofish(ctx):
-    #     url = CodInGame.CodInGame()
-    #     await ctx.send(url)
+  
 
     # @bot.command()
     # async def deletereaction(ctx, arg1: str):
