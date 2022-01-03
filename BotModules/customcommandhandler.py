@@ -140,7 +140,7 @@ class CustomCommandHandler(commands.Cog):
         try:
             # Cast to list, since set cant be json dumped
             intermediateDict = {k: list(v) for k, v in self.command_dict.items()}
-            with open(self.file_name, "w") as outfile:
+            with open(self.config["json_file_location"], "w") as outfile:
                 json.dump(intermediateDict, outfile)
             return True
         except Exception as e:
