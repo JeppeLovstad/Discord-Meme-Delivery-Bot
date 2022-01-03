@@ -1,3 +1,4 @@
+from GenericScrapers.RedditScrape import RedditScrape
 from bs4 import BeautifulSoup
 import requests
 from random import choice
@@ -28,7 +29,8 @@ class Greentext(commands.Cog):
 
     def get_greentext(self):
         return choice(self.greentext_imgs)
-
+       # scrape = RedditScrape(sub_reddit="greentext")
+       # scrape.get_random_post()
 
 if __name__ == "__main__":
     from configparser import ConfigParser
@@ -37,4 +39,5 @@ if __name__ == "__main__":
     config.read("config.ini")
     bot = commands.Bot(command_prefix="!")
     m = Greentext(bot=bot, config=config["GREENTEXT"])
-    # print(m.get_greentext())
+    #m = Greentext(0,0)
+    #print(m.get_greentext())
