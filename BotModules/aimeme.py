@@ -60,7 +60,7 @@ class AIMemeGenerator(commands.Cog):
 
     @commands.command()
     async def captionmeme(self, ctx, meme_id: str = "-1", *text):
-        text = "|".join(text)
+        text = "|".join(text) if text else "|"
         if meme_id.isdigit():
             send, template_id = self.getMemeInfo(template_id=int(meme_id))
         else:

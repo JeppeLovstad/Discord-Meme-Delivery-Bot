@@ -3,6 +3,8 @@ from itertools import combinations
 import random
 from discord.ext import commands
 import discord
+import emoji
+import re
 
 # from functools import wraps
 
@@ -22,6 +24,7 @@ class CustomCommandHandler(commands.Cog):
             config["json_file_location"] if "json_file_location" in config else ""
         )
         self.command_dict = {}
+        self.reply_type = config["reply_type"]
         self.initiateFile(file_name)
         # self.add_bot_command(bot)
 
@@ -57,7 +60,10 @@ class CustomCommandHandler(commands.Cog):
         if not message.content.startswith(self.command_prefix):
             ccResponse = self.getResponseToMessage(message.content)
             if ccResponse:
-                await message.reply(ccResponse)
+                if self.reply_type == "message":
+                    await message.reply(ccResponse)
+                if self.reply_type == "reaction":
+                    await message.add_reaction(ccResponse)
 
     @commands.command()
     async def addcommand(self, ctx, arg1: str, *args):
@@ -67,6 +73,11 @@ class CustomCommandHandler(commands.Cog):
             return
 
         added = self.addCommand(arg1, response)
+
+        if self.reply_type == "reaction":
+            if not self.emojiIdentifier(response):
+                await ctx.send("non valid emoji")
+                return
 
         if added:
             await ctx.send("command added")
@@ -103,6 +114,16 @@ class CustomCommandHandler(commands.Cog):
             return False
         except:
             return False
+
+    def emojiIdentifier(self, text_with_emoji):
+        custom_emoji = re.match(r"<:\w*:\d*>", text_with_emoji)
+        default_emoji = (
+            emoji.emoji_lis(text_with_emoji)[0]["emoji"]
+            if emoji.emoji_count(text_with_emoji) == 1
+            else None
+        )
+        print(text_with_emoji, custom_emoji, default_emoji)
+        return custom_emoji or default_emoji
 
     def getResponseToMessage(self, message: str) -> str:
         commands = message.split()

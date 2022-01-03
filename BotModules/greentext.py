@@ -18,7 +18,7 @@ class Greentext(commands.Cog):
         # soup = BeautifulSoup(reddit_greentext_html, 'html.parser')
 
         img_tag = soup.find_all(attrs={"alt": "Post image"})
-        print(img_tag[0])
+        # print(img_tag)
         self.greentext_imgs = [img["src"] for img in img_tag]
 
     @commands.command()
