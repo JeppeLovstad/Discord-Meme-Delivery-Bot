@@ -1,38 +1,43 @@
-from io import FileIO
 import json
 from itertools import combinations
 import random
 from discord.ext import commands
 import discord
-#from functools import wraps
+
+# from functools import wraps
+
 
 class CustomCommandHandler(commands.Cog):
-    
-    add_command = ""
-    remove_command = ""
-    
     def __init__(self, config, bot: commands.Bot) -> None:
         self.bot = bot
         self.config = config
-        self.remove_command = self.config["remove_command"]
-        self.remove_command = self.config["add_command"]
+        self.updateCommandNames(config)
         self.command_prefix = self.config["command_prefix"]
-        self.get_single_response = config["get_single_response"] == "True" if "get_single_response" in config else False
-        self.file_name = config["json_file_location"] if "json_file_location" in config else ""
+        self.get_single_response = (
+            config["get_single_response"] == "True"
+            if "get_single_response" in config
+            else False
+        )
+        file_name = (
+            config["json_file_location"] if "json_file_location" in config else ""
+        )
         self.command_dict = {}
-        self.initiateFile()
-        #self.add_bot_command(bot)
-        
-        
-    #def add_bot_command(self,bot: commands.Bot):
-     #   bot.add_command
-    
-    def initiateFile(self):
+        self.initiateFile(file_name)
+        # self.add_bot_command(bot)
+
+    def updateCommandNames(self, config):
+        commands = super().get_commands()
+        for command in commands:
+            if command.name == "addcommand" and "add_command" in config:
+                command.name = config["add_command"]
+            if command.name == "deletecommand" and "delete_command" in config:
+                command.name = config["delete_command"]
+
+    def initiateFile(self, file_name="command.json"):
         try:
-            with open(self.file_name, "r") as infile:
+            with open(file_name, "r") as infile:
                 # cast lists to sets
-                self.command_dict = {k: set(v)
-                                     for k, v in json.load(infile).items()}
+                self.command_dict = {k: set(v) for k, v in json.load(infile).items()}
         except FileNotFoundError:
             print("no command file")
             pass
@@ -43,12 +48,12 @@ class CustomCommandHandler(commands.Cog):
             pass
 
     @commands.Cog.listener(name="on_message")
-    async def CustomCommandResponder(self, message:discord.Message):
+    async def CustomCommandResponder(self, message: discord.Message):
         if message.author == self.bot.user:
             return
         if message.content == "":
             return
-        
+
         if not message.content.startswith(self.command_prefix):
             ccResponse = self.getResponseToMessage(message.content)
             if ccResponse:
@@ -67,7 +72,6 @@ class CustomCommandHandler(commands.Cog):
             await ctx.send("command added")
         else:
             await ctx.send("adding command failed")
-
 
     @commands.command()
     async def deletecommand(self, ctx, arg1: str):
@@ -110,12 +114,12 @@ class CustomCommandHandler(commands.Cog):
         for i, j in combinations(range(len(commands) + 1), 2):
             commands_expanded.append(" ".join(commands[i:j]))
         # Get responses to commands, filter away None
-        valid_commands = list(filter(lambda x: x != "", map(
-            self.getResponseToCommand, commands_expanded)))
-        
-        
+        valid_commands = list(
+            filter(lambda x: x != "", map(self.getResponseToCommand, commands_expanded))
+        )
+
         if valid_commands and not single_response:
-            return '\n'.join(valid_commands)
+            return "\n".join(valid_commands)
         elif valid_commands and single_response:
             return random.choice(valid_commands)
         else:
@@ -135,8 +139,7 @@ class CustomCommandHandler(commands.Cog):
     def updateFile(self) -> bool:
         try:
             # Cast to list, since set cant be json dumped
-            intermediateDict = {k: list(v)
-                                for k, v in self.command_dict.items()}
+            intermediateDict = {k: list(v) for k, v in self.command_dict.items()}
             with open(self.file_name, "w") as outfile:
                 json.dump(intermediateDict, outfile)
             return True
@@ -144,16 +147,8 @@ class CustomCommandHandler(commands.Cog):
             print(e)
             return False
 
-    
 
-    # Cannot call open in del
-    # def __exit__(self):
-    #     print("saving file")
-    #     with open(self.file_name, "w") as outfile:
-    #         json.dump(self.command_dict, outfile)
-
-
-#c = CustomCommandHandler()
+# c = CustomCommandHandler()
 # print(c.addCommand("test", "wow much so"))
 # print(c.addCommand("test", "wow much too"))
 # print(c.deleteCommand("test"))
