@@ -1,4 +1,4 @@
-from GenericScrapers.RedditScrape import RedditScrape
+#from GenericScrapers.RedditScrape import RedditScrape
 from bs4 import BeautifulSoup
 import requests
 from random import choice
@@ -19,7 +19,7 @@ class Greentext(commands.Cog):
         # soup = BeautifulSoup(reddit_greentext_html, 'html.parser')
 
         img_tag = soup.find_all(attrs={"alt": "Post image"})
-        # print(img_tag)
+        print(img_tag)
         self.greentext_imgs = [img["src"] for img in img_tag]
 
     @commands.command()
@@ -28,9 +28,13 @@ class Greentext(commands.Cog):
         await ctx.send(greentext_img)
 
     def get_greentext(self):
-        return choice(self.greentext_imgs)
-       # scrape = RedditScrape(sub_reddit="greentext")
-       # scrape.get_random_post()
+        if self.greentext_imgs:
+            return choice(self.greentext_imgs)
+        else:
+            return "No links :("
+        return 
+        #scrape = RedditScrape(sub_reddit="greentext")
+        #return await scrape.get_random_post()
 
 if __name__ == "__main__":
     from configparser import ConfigParser
@@ -40,4 +44,4 @@ if __name__ == "__main__":
     bot = commands.Bot(command_prefix="!")
     m = Greentext(bot=bot, config=config["GREENTEXT"])
     #m = Greentext(0,0)
-    #print(m.get_greentext())
+    print(m.get_greentext())

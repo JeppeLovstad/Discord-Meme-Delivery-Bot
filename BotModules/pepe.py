@@ -21,8 +21,10 @@ class Pepe(commands.Cog):
         await ctx.send(pepe_img)
 
     def get_pepe(self):
-        return choice(self.pepe_imgs)
-
+        if self.pepe_imgs:
+            return choice(self.pepe_imgs)
+        else:
+            return "No Pepes :("
 
 if __name__ == "__main__":
     from configparser import ConfigParser
