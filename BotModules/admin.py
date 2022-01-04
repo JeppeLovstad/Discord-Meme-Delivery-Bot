@@ -47,7 +47,7 @@ class Admin(commands.Cog):
                 if cog.__name__ == module:
                     cog = cog
             
-            self.bot.remove_cog(cog)
+            self.bot.remove_cog(module)
             self.bot.add_cog(cog)
         except Exception as e:
             await ctx.send('\N{PISTOL}')

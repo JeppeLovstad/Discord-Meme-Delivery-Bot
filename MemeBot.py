@@ -1,3 +1,4 @@
+from configparser import Error
 import discord
 import sys
 from discord.ext import commands
@@ -8,7 +9,6 @@ class MemeBot:
     command_prefix: str
 
     def __init__(self, config: dict, bot: commands.Bot):
-        self.command_prefix = config["DISCORD"]["command_prefix"]
         self.initiateBotModules(config, bot)
         self.registerDefaultFunctions(bot)
         self.bot = bot
@@ -36,9 +36,13 @@ class MemeBot:
                         config[module.upper()] if module.upper() in config else {}
                     )
                     #iniate class
-                    initiated_class = imported_class(bot=bot, config=module_config)
+                    try:
+                        initiated_class = imported_class(bot=bot, config=module_config)
+                        initiated_class.__cog_name__ = module.capitalize()
+                    except Error as e:
+                        print(f"Could not instantiate {module}, {e.message}")
+                        continue
                     #update class name
-                    initiated_class.__cog_name__ = module.capitalize()
                 except ModuleNotFoundError:
                     print(f"no module found in {module_path}")
                     continue
@@ -80,5 +84,3 @@ class MemeBot:
         # if message.author.name == 'Lasse Morgen':
         #    await message.add_reaction("<:LasseWut:912650302589648907>")
 
-        if not message.content.startswith(self.command_prefix):
-            pass
