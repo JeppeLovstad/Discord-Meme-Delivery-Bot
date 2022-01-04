@@ -29,11 +29,15 @@ class MemeBot:
                     else f"BotModules.{module}"
                 )
                 try:
+                    #get class from folder
                     imported_class = self.import_bot_module(module_path, main_classname)
+                    #check if module specific config exists
                     module_config = (
                         config[module.upper()] if module.upper() in config else {}
                     )
+                    #iniate class
                     initiated_class = imported_class(bot=bot, config=module_config)
+                    #update class name
                     initiated_class.__cog_name__ = module.capitalize()
                 except ModuleNotFoundError:
                     print(f"no module found in {module_path}")
