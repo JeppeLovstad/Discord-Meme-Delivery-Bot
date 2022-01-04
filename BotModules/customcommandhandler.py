@@ -6,15 +6,11 @@ import discord
 import emoji
 import re
 
-# from functools import wraps
-
-
 class CustomCommandHandler(commands.Cog):
     def __init__(self, config, bot: commands.Bot) -> None:
         self.bot = bot
         self.config = config
         self.updateCommandNames(config)
-        self.command_prefix = self.config["command_prefix"]
         self.get_single_response = (
             config["get_single_response"] == "True"
             if "get_single_response" in config
@@ -57,7 +53,7 @@ class CustomCommandHandler(commands.Cog):
         if message.content == "":
             return
 
-        if not message.content.startswith(self.command_prefix):
+        if not message.content.startswith(self.bot.command_prefix):
             ccResponse = self.getResponseToMessage(message.content)
             if ccResponse:
                 if self.reply_type == "message":
@@ -169,11 +165,4 @@ class CustomCommandHandler(commands.Cog):
             return False
 
 
-# c = CustomCommandHandler()
-# print(c.addCommand("test", "wow much so"))
-# print(c.addCommand("test", "wow much too"))
-# print(c.deleteCommand("test"))
-# print(c.addCommand("i am", "wow much too"))
-# print(c.addCommand("i am", "wow much too test"))
-# print(c.getResponseToMessage("i am test this"))
-# print(c.updateFile())
+
