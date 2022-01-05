@@ -11,16 +11,17 @@ class RedditScrape:
     
     #MemeBotButItsTrash
     #JeppeChrisLasse123
-    async def get_random_post(self):
-        if(len(self.post_dictionary) < 5 and len(self.post_dictionary > 0)):
+    def get_random_post(self):
+        if(len(self.post_dictionary) < 5):# and len(self.post_dictionary > 0)):
             self.populate_list()
-        if(len(self.post_dictionary) == 0):
-           await self.populate_list()
-        post =  choice(self.populate_list)
-        self.populate_list.pop(post)
+      #  if(len(self.post_dictionary) == 0):
+       #    await self.populate_list()
+        post = choice(list(self.post_dictionary))
+        self.post_dictionary.pop(post)
+        print(len(self.post_dictionary))
         return post
 
-    async def populate_list(self):
+    def populate_list(self):
 
         # note that CLIENT_ID refers to 'personal use script' and SECRET_TOKEN to 'token'
         auth = requests.auth.HTTPBasicAuth('n_gaqCyYChHH3k1i6Ea2Tw', 'qh4_ESsCaGLSwYlK_n-omSjuiat9iw')
@@ -35,7 +36,7 @@ class RedditScrape:
 
         # send our request for an OAuth token
         res = requests.post('https://www.reddit.com/api/v1/access_token',
-                            auth=auth, data=data, headers=headers, limit=self.load_amount)
+                            auth=auth, data=data, headers=headers)
         
         # convert response to JSON and pull access_token value
         TOKEN = res.json()['access_token']
@@ -47,7 +48,7 @@ class RedditScrape:
         requests.get('https://oauth.reddit.com/api/v1/me', headers=headers)
 
         res = requests.get("https://oauth.reddit.com/r/"+self.sub_reddit+"/hot",
-                   headers=headers)
+                   headers=headers, params = {'limit': str(self.load_amount)})
 
         #print(res.json())
         for post in res.json()['data']['children']:

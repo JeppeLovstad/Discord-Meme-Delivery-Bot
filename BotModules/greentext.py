@@ -1,26 +1,27 @@
-#from GenericScrapers.RedditScrape import RedditScrape
 from bs4 import BeautifulSoup
 import requests
 from random import choice
 from discord.ext import commands
-
+from GenericScrapers.RedditScrape import RedditScrape
 
 class Greentext(commands.Cog):
     def __init__(self, config, bot: commands.Bot):
         self.bot = bot
         self.config = config
 
-        reddit_greentext_url = "https://www.reddit.com/r/greentext/"
-        reddit_greentext_html = requests.get(reddit_greentext_url).content
-        soup = BeautifulSoup(reddit_greentext_html, "html.parser")
-
-        # reddit_greentext_url = 'https://the-greentext-guy.tumblr.com/archive'
-        # reddit_greentext_html = requests.get(reddit_greentext_url).content
-        # soup = BeautifulSoup(reddit_greentext_html, 'html.parser')
-
-        img_tag = soup.find_all(attrs={"alt": "Post image"})
-        print(img_tag)
-        self.greentext_imgs = [img["src"] for img in img_tag]
+        scrape = RedditScrape(sub_reddit="greentext",load_amount=100)
+        self.image = scrape.get_random_post()
+        #reddit_greentext_url = "https://www.reddit.com/r/greentext/"
+        #reddit_greentext_html = requests.get(reddit_greentext_url).content
+        #soup = BeautifulSoup(reddit_greentext_html, "html.parser")
+#
+        ## reddit_greentext_url = 'https://the-greentext-guy.tumblr.com/archive'
+        ## reddit_greentext_html = requests.get(reddit_greentext_url).content
+        ## soup = BeautifulSoup(reddit_greentext_html, 'html.parser')
+#
+        #img_tag = soup.find_all(attrs={"alt": "Post image"})
+        ## print(img_tag)
+        #self.greentext_imgs = [img["src"] for img in img_tag]
 
     @commands.command()
     async def greentext(self, ctx):
@@ -28,13 +29,8 @@ class Greentext(commands.Cog):
         await ctx.send(greentext_img)
 
     def get_greentext(self):
-        if self.greentext_imgs:
-            return choice(self.greentext_imgs)
-        else:
-            return "No links :("
-        return 
-        #scrape = RedditScrape(sub_reddit="greentext")
-        #return await scrape.get_random_post()
+        #return choice(self.greentext_imgs)       
+        return self.image
 
 if __name__ == "__main__":
     from configparser import ConfigParser
@@ -44,4 +40,4 @@ if __name__ == "__main__":
     bot = commands.Bot(command_prefix="!")
     m = Greentext(bot=bot, config=config["GREENTEXT"])
     #m = Greentext(0,0)
-    print(m.get_greentext())
+    #print(m.get_greentext())
