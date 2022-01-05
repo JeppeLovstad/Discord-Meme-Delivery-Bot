@@ -1,16 +1,15 @@
-from bs4 import BeautifulSoup
-import requests
 from random import choice
 from discord.ext import commands
-from GenericScrapers.RedditScrape import RedditScrape
+if __name__ != "__main__": 
+    from .GenericScrapers.RedditScrape import RedditScrape
 
 class Greentext(commands.Cog):
     def __init__(self, config, bot: commands.Bot):
         self.bot = bot
         self.config = config
 
-        scrape = RedditScrape(sub_reddit="greentext",load_amount=100)
-        self.image = scrape.get_random_post()
+        self.scrape = RedditScrape(sub_reddit="greentext",load_amount=100)
+        #self.image = 
         #reddit_greentext_url = "https://www.reddit.com/r/greentext/"
         #reddit_greentext_html = requests.get(reddit_greentext_url).content
         #soup = BeautifulSoup(reddit_greentext_html, "html.parser")
@@ -30,9 +29,10 @@ class Greentext(commands.Cog):
 
     def get_greentext(self):
         #return choice(self.greentext_imgs)       
-        return self.image
+        return self.scrape.get_random_post()
 
 if __name__ == "__main__":
+    from GenericScrapers.RedditScrape import RedditScrape
     from configparser import ConfigParser
 
     config = ConfigParser()
@@ -40,4 +40,4 @@ if __name__ == "__main__":
     bot = commands.Bot(command_prefix="!")
     m = Greentext(bot=bot, config=config["GREENTEXT"])
     #m = Greentext(0,0)
-    #print(m.get_greentext())
+    print(m.get_greentext())

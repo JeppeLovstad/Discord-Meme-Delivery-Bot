@@ -1,5 +1,5 @@
 import requests
-
+from requests.auth import HTTPBasicAuth
 from random import choice
 
 class RedditScrape:
@@ -24,7 +24,7 @@ class RedditScrape:
     def populate_list(self):
 
         # note that CLIENT_ID refers to 'personal use script' and SECRET_TOKEN to 'token'
-        auth = requests.auth.HTTPBasicAuth('n_gaqCyYChHH3k1i6Ea2Tw', 'qh4_ESsCaGLSwYlK_n-omSjuiat9iw')
+        auth = HTTPBasicAuth('n_gaqCyYChHH3k1i6Ea2Tw', 'qh4_ESsCaGLSwYlK_n-omSjuiat9iw')
 
         # here we pass our login method (password), username, and password
         data = {'grant_type': 'password',
