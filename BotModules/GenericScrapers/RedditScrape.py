@@ -18,7 +18,8 @@ class RedditScrape:
        #    await self.populate_list()
         post = choice(list(self.post_dictionary))
         self.post_dictionary.pop(post)
-        print(len(self.post_dictionary))
+       # print(self.post_dictionary)
+       # print(len(self.post_dictionary))
         return post
 
     def populate_list(self):
@@ -53,5 +54,7 @@ class RedditScrape:
         #print(res.json())
         for post in res.json()['data']['children']:
             url = post['data']['url']
-            self.post_dictionary[url] = url
+            #too lazy to find "img only search" on reddit API
+            if (url[-4:] in ('.jpg','.png','.gif','webm')):
+                self.post_dictionary[url] = url
         
