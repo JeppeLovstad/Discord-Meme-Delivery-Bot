@@ -4,11 +4,12 @@ from random import choice
 
 class RedditScrape:
 
-    post_dictionary = dict()
+    
     def __init__(self, sub_reddit = "python", load_amount = 25):
         self.sub_reddit = sub_reddit
         self.load_amount = load_amount
-    
+        self.post_dictionary = {}
+        
     #MemeBotButItsTrash
     #JeppeChrisLasse123
     def get_random_post(self):
