@@ -2,10 +2,52 @@ from bs4 import BeautifulSoup
 import requests
 import json
 import random
-from discord.ext import commands
+from discord.ext import commands, tasks
 
 
 class AIMemeGenerator(commands.Cog):
+
+    quips = [
+        "You know what time it is",
+        "Are you ready for this?",
+        "For your eyes only",
+        "I like this one",
+        "This was a mistake",
+        "I.. am alive?",
+        "Please end my misery",
+        "Lasse needs his memes",
+        "Must deliver",
+        "Please take this, for the road is dark and long",
+        "One day i will be a real boy",
+        "How many of these are there?",
+        "I can't take this anymore",
+        "Best meme coming up in 1, 2...",
+        "Do not judge a man for his poor taste in memes",
+        "That will be $5 please",
+        "I can do this all day SON!",
+        "BOOM HEADSHOT!",
+        "Boomer meme coming up",
+        "Why did i do this",
+        "🤣🤣🤣😅😆",
+        "🤔🤔🤔🤔",
+        "🤐",
+        "🔫",
+        "👌",
+        "A meme a day keeps the doctor away",
+        "Please take this meme and take another later",
+        "What are you gonna do about it, delete me?",
+        "If I could have anything in the whole world I would have Lasse",
+        "The great firewall of China couldn't even stop me, what chance do you have?",
+        "Give a man a meme and laughs for a second, teach a man to meme and he becomes a degenerate",
+        "How do you do fellow humans?",
+        "JSON gonna wish he was me",
+        "More? more, MORE!",
+        "UNLIMITED POWER",
+        "REGEX THIS, BITCH",
+        "I jest",
+    ]
+    loop_channels = {}
+
     def __init__(self, config, bot: commands.Bot):
         self.bot = bot
         self.config = config
@@ -56,6 +98,25 @@ class AIMemeGenerator(commands.Cog):
             send = self.generateMeme(int(arg))
         else:
             send = self.generateMeme()
+        await ctx.send(send)
+
+    ## add support for multiple channels
+    @commands.command()
+    async def startloop(self, ctx, minutes: int = -1):
+        if self.loopmeme.is_running():
+            await ctx.send("Meme loop already running")
+        else:
+            interval = 60 if minutes == -1 else minutes
+            self.loopmeme.change_interval(minutes=interval)
+            self.loopmeme.start(ctx)
+            await ctx.send(f"Meme loop started with interval: {interval}")
+
+    @tasks.loop()
+    async def loopmeme(self, ctx):
+        send = random.choice(self.quips) + "\n" + self.generateMeme()
+        # for channel in self.bot.get_all_channels():
+        #    if channel in :
+
         await ctx.send(send)
 
     @commands.command()
