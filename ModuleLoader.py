@@ -1,22 +1,36 @@
-from configparser import Error
-import discord
 from discord.ext import commands
 
+_module_loader = None
 
-class MemeBot:
-    bot: commands.Bot
-    command_prefix: str
 
-    def __init__(self, config: dict, bot: commands.Bot):
-        self.bot = bot
-        enabledCogs = self.getCogInfoFromConfig(config)
-        for cogInfo in enabledCogs:
+def getModuleLoader(bot, config):
+    global _module_loader
+    if not _module_loader:
+        _module_loader = ModuleLoader(bot=bot, config=config)
+    return _module_loader
+
+
+class ModuleLoader:
+    cogs = {}
+    _bot: commands.Bot
+
+    def __init__(self, bot: commands.Bot, config):
+        self._bot = bot
+
+        cog_info = self.getCogInfoFromConfig(config)
+        self.load_cogs(cog_info)
+
+    def reload_cogs(self, cogs):
+        pass
+
+    def load_cogs(self, cogs):
+        for cogInfo in cogs:
             cog = self.instantiateCog(cogInfo)
             if cog:
-                bot.add_cog(cog)
+                self._bot.add_cog(cog)
 
-        self.registerDefaultFunctions(bot)
-        bot.run(config["DISCORD"]["bot_token"])
+    def unload_cog(self, cog_name):
+        pass
 
     def getCogInfoFromConfig(self, config):
         cogs = []
@@ -60,7 +74,7 @@ class MemeBot:
 
             try:
                 # initate class
-                initiated_class = imported_class(bot=self.bot, config=module_config)
+                initiated_class = imported_class(bot=self._bot, config=module_config)
                 # update class name
                 initiated_class.__cog_name__ = module.capitalize()
             except Exception as e:
@@ -81,31 +95,3 @@ class MemeBot:
     def import_bot_module(self, module, name):
         module = __import__(module, fromlist=[name])
         return getattr(module, name)
-
-    def registerDefaultFunctions(self, bot: commands.Bot):
-        bot.event(self.on_ready)
-        bot.event(self.on_command_error)
-        bot.add_listener(self.CustomCommandResponder, name="on_message")
-
-    async def on_ready(self):
-        self.bot.get_all_channels()
-        print("We have logged in as {0.user}".format(self.bot))
-
-    async def on_command_error(self, ctx, error):
-        print(ctx, error)
-        if isinstance(error, commands.CommandNotFound):
-            if ctx.message.author.name == "Lasse Morgen":
-                await ctx.message.reply(
-                    "you fool. you absolute buffoon. you think you can challenge me in my own realm? you think you can rebel against my authority? you dare come into my house and upturn my dining chairs and spill coffee grounds in my Keurig? you thought you were safe in your chain mail armor behind that screen of yours. I will take these laminate wood floor boards and destroy you. I didn’t want war. but i didn’t start it."
-                )
-        else:
-            raise error
-
-    async def CustomCommandResponder(self, message: discord.Message):
-        if message.author == self.bot.user:
-            return
-        if message.content == "":
-            return
-        # legacy code do not delete
-        # if message.author.name == 'Lasse Morgen':
-        #    await message.add_reaction("<:LasseWut:912650302589648907>")
