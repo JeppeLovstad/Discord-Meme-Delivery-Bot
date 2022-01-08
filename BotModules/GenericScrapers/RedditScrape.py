@@ -5,11 +5,13 @@ from random import choice
 class RedditScrape:
 
     
-    def __init__(self, sub_reddit = "python", load_amount = 25):
+    def __init__(self, sub_reddit = "python", load_amount = 100,post_type = 'all'):
         self.sub_reddit = sub_reddit
         self.load_amount = load_amount
         self.post_dictionary = {}
+        self.post_type = post_type
         
+
     #MemeBotButItsTrash
     #JeppeChrisLasse123
     def get_random_post(self):
@@ -17,10 +19,12 @@ class RedditScrape:
             self.populate_list()
       #  if(len(self.post_dictionary) == 0):
        #    await self.populate_list()
-        post = choice(list(self.post_dictionary))
-        self.post_dictionary.pop(post)
-       # print(self.post_dictionary)
+        key = choice(list(self.post_dictionary))
+        post = self.post_dictionary[key]
+        self.post_dictionary.pop(key)
+      #  print(self.post_dictionary.)
        # print(len(self.post_dictionary))
+       # print(post)
         return post
 
     def populate_list(self):
@@ -53,9 +57,17 @@ class RedditScrape:
                    headers=headers, params = {'limit': str(self.load_amount)})
 
         #print(res.json())
-        for post in res.json()['data']['children']:
-            url = post['data']['url']
-            #too lazy to find "img only search" on reddit API
-            if (url[-4:] in ('.jpg','.png','.gif','webm')):
-                self.post_dictionary[url] = url
+        for idx, post in enumerate(res.json()['data']['children']):
+                
+            if (self.post_type == 'img' and url[-4:] in ('.jpg','.png','.gif','webm')):
+                post_info = {'title' : post['data']['title'],'url' : post['data']['url']}
+                self.post_dictionary[idx] = post_info
+                continue
+            
+            if (self.post_type == 'all'):
+                post_info = {'title' : post['data']['title'],'url' : post['data']['url']}
+                self.post_dictionary[idx] = post_info
+                continue
+            
+           
         
