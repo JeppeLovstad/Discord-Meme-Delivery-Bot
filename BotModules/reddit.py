@@ -21,7 +21,7 @@ class Reddit(commands.Cog):
             self.subreddit_collection[arg1] = RedditScrape(sub_reddit=arg1,load_amount=arg2,post_type=arg3)
         #self.scrape = RedditScrape(sub_reddit=arg1,load_amount=arg2,)
         post = self.subreddit_collection[arg1].get_random_post()
-        return post['title'],post['url']
+        return f"{post['title']} \n {post['url']}"
       #  print(self.scrape.get_random_post()[0])
       #  return self.scrape.get_random_post()
 
