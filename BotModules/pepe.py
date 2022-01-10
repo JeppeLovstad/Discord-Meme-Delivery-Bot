@@ -22,7 +22,8 @@ class Pepe(commands.Cog):
 
     def get_pepe(self):
         if self.pepe_imgs:
-            return choice(self.pepe_imgs)
+            pepe_url = choice(self.pepe_imgs)
+            return pepe_url.replace('-150x150.','.')
         else:
             return "No Pepes :("
 
