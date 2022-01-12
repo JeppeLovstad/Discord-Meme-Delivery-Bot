@@ -23,7 +23,7 @@ class Admin(commands.Cog):
             await ctx.send('User not verified')
             return
            
-        git_output = run(["journalctl", "--unit=discordbot.service", f"-n {limit}", "--no-pager"], capture_output=True)
+        git_output = run(["journalctl", "--unit=discordbot.service", "-n",  f"{limit}", "--no-pager"], capture_output=True)
         git_output = git_output.stdout.decode("utf-8")
         await ctx.send(git_output)
         
