@@ -101,7 +101,7 @@ class TicTacToe(commands.Cog):
 
         # update board
         val = 1 if game['turn'] else 2
-        game['board'][x][y] = val
+        game['board'][y][x] = val
 
         # update turn
         game['turn'] = not game['turn']
