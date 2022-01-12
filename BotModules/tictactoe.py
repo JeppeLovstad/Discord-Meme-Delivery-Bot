@@ -17,13 +17,14 @@ class TicTacToe(commands.Cog):
             await ctx.send('i did not understand that')
     
     async def _new_game(self, ctx, other_player, id):
-        possible_players = ctx.guild.members
+        possible_players = [player.name for player in ctx.guild.members]
+        await ctx.send('possible players:')
         for player in possible_players:
-            await ctx.send(player)
+            await ctx.send(player.name)
         if other_player not in possible_players:
             await ctx.send(f'who {other_player}?')
             return False
-        if other_player == ctx.author:
+        if other_player == ctx.author.name:
             await ctx.send(f'i will not waste cpu cycles for you to play tictactoe with yourself')
             return False
         
