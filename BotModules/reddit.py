@@ -1,5 +1,6 @@
 from discord.ext import commands
 from BotModules.GenericScrapers.RedditScrape import RedditScrape
+from random import choice
 
 class Reddit(commands.Cog):
     def __init__(self, config, bot: commands.Bot):
@@ -9,7 +10,11 @@ class Reddit(commands.Cog):
        
     @commands.command()
     async def reddit(self, ctx,arg1: str, arg2: int = 100, arg3: str = 'all'):
-        reddit_img = self.get_reddit(arg1,arg2,arg3)
+        reddit_img = ""
+        if arg1.lower() == "random":
+            reddit_img = choice(choice(self.subreddit_collection))
+        else:
+            reddit_img = self.get_reddit(arg1,arg2,arg3)
         await ctx.send(reddit_img)
 
     def get_reddit(self,arg1,arg2 = 100,arg3 = 'all'):
