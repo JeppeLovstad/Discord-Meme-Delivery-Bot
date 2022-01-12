@@ -22,6 +22,15 @@ class TicTacToe(commands.Cog):
         self.bot = bot
         self.games = {}
 
+    @commands.command(name='tictactoe-delete')
+    async def delete_game(self, ctx, id):
+        if self.games.get(id) == None:
+            await ctx.send(f'No game with ID {id} found.')
+        else:
+            self.games[id] = None
+            await ctx.send(f'Game with ID {id} deleted.')
+        
+
     @commands.command(name='ttt-games')
     async def get_games_short(self, ctx):
         await self.get_games(ctx)
