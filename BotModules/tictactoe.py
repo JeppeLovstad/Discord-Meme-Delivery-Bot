@@ -1,216 +1,191 @@
+from typing import Optional, Tuple
 from discord.ext import commands
 import random
-import traceback
+
+
+#####################
+#       UTILS       #
+#####################
+def try_parse_int(x):
+    try:
+        x = int(x)
+        return x, True
+    except:
+        return None, False
 
 class TicTacToe(commands.Cog):
     def __init__(self, config, bot: commands.Bot):
         self.config = config
         self.bot = bot
         self.games = {}
-    
-    @commands.command()
-    async def tictactoe(self, ctx, arg1=None, arg2=None):
-        try:
-            if arg1 is None and arg2 is None:
-                possible_players = [player.nick for player in ctx.guild.members if not player.bot]
-                await ctx.send('possible players:')
-                for player in possible_players:
-                    await ctx.send(player)
-            # check for existing game
-            if arg1 in self.games:
-                if self.games[arg1] != None:
-                    await self.turn(ctx, arg1, arg2)
-            # new game
-            if arg1 is not None:
-                await self._new_game(ctx, arg1, arg2)
-        except Exception:
-            await ctx.send(traceback.format_exc())
-    
-    async def _new_game(self, ctx, other_player, id):
-        possible_players = [player.nick for player in ctx.guild.members if not player.bot]
-        if other_player not in possible_players:
-            await ctx.send(f'who {other_player}?')
-            return False
-        if other_player == ctx.author.nick:
-            await ctx.send(f'i will not waste cpu cycles for you to play tictactoe with yourself')
-            return False
-        
-        turn = True if random.randint(0, 1) == 1 else False
-        game = {
-            'player_one'            : ctx.author.nick,
-            'player_two'            : other_player,
-            'board'                 : [[0 for _ in range(3)] for _ in range(3)],
-            'turn'                  : turn # true for player_one, false for player_two
-        }
-        if id is None:
-            await ctx.send('y u no give id')
-            return False
-        
-        if id in self.games:
-            if self.games[id] != None:
-                await ctx.send('get your own id man')
-                return False
 
-        self.games[id] = game
-        await ctx.send(f'come, come! {game["player_one"]} and {game["player_two"]} are gonna battle it out with sticks and stones!')
-        await ctx.send(self.empty_board())
-        await ctx.send(f'use command !tictactoe {id} x,y to place a piece')
-        if game['turn']:
-            await ctx.send(f'your turn, {game["player_one"]}')
+
+    @commands.command(name='ttt-delete')
+    async def delete_game_short(self, ctx, id):
+        await self.delete_game(ctx, id)
+
+    @commands.command(name='tictactoe-delete')
+    async def delete_game(self, ctx, id):
+        if self.games.get(id) == None:
+            await ctx.send(f'No game with ID {id} found.')
         else:
-            await ctx.send(f'your turn, {game["player_two"]}')
+            self.games[id] = None
+            await ctx.send(f'Game with ID {id} deleted.')
+
+    @commands.command(name='ttt-games')
+    async def get_games_short(self, ctx):
+        await self.get_games(ctx)
+
+    @commands.command(name='tictactoe-games')
+    async def get_games(self, ctx):
+        for id, game in self.games.items():
+            if game is not None:
+                await ctx.send(f'ID: {id}')
+                state = await self._print_board(game)
+                await ctx.send(state)
+
+    @commands.command(name='ttt-list')
+    async def list_members_short(self, ctx):
+        await self.list_members(ctx)
+
+    @commands.command(name='tictactoe-list')
+    async def list_members(self, ctx):
+        id = 0
+        await ctx.send(f'Members (Use id or nickname to start a new game with a player):')
+        members = [member.nick for member in ctx.guild.members if not member.bot]
+        for member in members:
+            await ctx.send(f'{id}: {member}')
+            id += 1
+
+    @commands.command(name='ttt-new')
+    async def new_game_short(self, ctx, id, opponent):
+        await self.new_game(ctx, id, opponent)
+
+    @commands.command(name='tictactoe-new')
+    async def new_game(self, ctx, id, opponent):
+        # check if id is in use
+        if self.games.get(id) != None:
+            await ctx.send(f'ID {id} is already in use.')
+            return
+        
+        # validate opponent
+        opponent, valid = await self._validate_opponent(ctx, opponent)
+        if not valid:
+            return
+        
+        # create new game
+        game = await self._create_game(ctx, id, opponent)
         self.games[id] = game
-        return True
-
-    async def turn(self, ctx, id, move):
-        # find game
-        if id not in self.games:
-            await ctx.send('you got the wrong id kiddo')
-            return
-        else:
-            if self.games[id] is None:
-                await ctx.send('you got the wrong id kiddo')
-                return
         
-        game = self.games[id]
+        # print new game message
+        await self._new_game_message(ctx, game)
 
-        # check turn
-        if game['turn']: # player_one's turn
-            if ctx.author.nick != game["player_one"]:
-                await ctx.send(f'you\'re an impatient little shit, aren\'t you?')
-                return
-        else: # player_two's turn
-            if ctx.author.nick != game["player_two"]:
-                await ctx.send(f'you\'re an impatient little shit, aren\'t you?')
-        
-        # parse move
-        move = [x for x in move.split(',')]
-        try:
-            x, y = int(move[0]), int(move[1])
-            if x not in [0, 1, 2] or y not in [0, 1, 2]:
-                await ctx.send('what the hell kind of move is this')
-                return
+    @commands.command(name='ttt-move')
+    async def move_short(self, ctx, id, move):
+        await self.move(ctx, id, move)
 
-        except:
-            await ctx.send('what the hell kind of move is this')
+    @commands.command(name='tictactoe-move')
+    async def move(self, ctx, id, move):
+        # check if id is valid
+        game = self.games.get(id)
+        if game == None:
+            await ctx.send(f'No game found with ID {id}')
             return
 
-        # check if valid move
-        if game['board'][y][x] != 0:
-            await ctx.send(f'someone here dawg, find another place to put your weird signs')
+        # check if move is valid
+        x, y, valid = await self._validate_move(ctx, move, game)
+        if not valid:
             return
-        
-        # make move and print board
-        game["board"][y][x] = 1 if game["turn"] else 2
-        player = game['player_one'] if game['turn'] else game['player_two']
-        await ctx.send(f'{player} has managed to write something i understand!')
-        await ctx.send(self.print_board(game['board']))
+
+        # update board
+        val = 1 if game['turn'] else 2
+        game['board'][y][x] = val
+
+        # update turn
         game['turn'] = not game['turn']
-        if game['turn']:
-            await ctx.send(f'your turn, {game["player_one"]}')
-        else:
-            await ctx.send(f'your turn, {game["player_two"]}')
         self.games[id] = game
-        return
+
+        # print move message
+        await self._move_message(ctx, game)
 
 
-    async def check_if_won(self, ctx, id):
-        game = self.games[id]
+        # check if game is over
+        winner, done = await self._is_game_over(game)
+        if done:
+            if winner is not None:
+                await ctx.send(f'{winner} won the game!')
+            else:
+                await ctx.send(f'No one won the game.')
+            self.games[id] = None
+
+    async def _is_game_over(self, game):
         board = game['board']
-        # check horizontal
+        # check lines
         for x in range(3):
-            one_won = True
-            two_won = True
+            player_one_won_horizontal = True
+            player_one_won_vertical = True
+            player_two_won_horizontal = True
+            player_two_won_vertical = True
             for y in range(3):
                 if board[x][y] in [0, 2]:
-                    one_won = False
+                    player_one_won_horizontal = False
                 if board[x][y] in [0, 1]:
-                    two_won = False
-            if one_won:
-                await ctx.send(f'{game["player_one"]} has won the game!')
-                self.games[id] = None
-                return
-            if two_won:
-                await ctx.send(f'{game["player_two"]} has won the game!')
-                self.games[id] = None
-                return
-        # check vertical
-        for x in range(3):
-            one_won = True
-            two_won = True
-            for y in range(3):
+                    player_two_won_horizontal = False
                 if board[y][x] in [0, 2]:
-                    one_won = False
+                    player_one_won_vertical = False
                 if board[y][x] in [0, 1]:
-                    two_won = False
-            if one_won:
-                await ctx.send(f'{game["player_one"]} has won the game!')
-                self.games[id] = None
-                return
-            if two_won:
-                await ctx.send(f'{game["player_two"]} has won the game!')
-                self.games[id] = None
-                return
+                    player_two_won_vertical = False
+            if player_one_won_horizontal or player_one_won_vertical:
+                return game['player_two'], True
+            if player_two_won_horizontal or player_two_won_vertical:
+                return game['player_two'], True
+        
         # check diagonal
-        one_won = True
-        two_won = True
-        for x in range(3):
-            if board[x][x] in [0, 2]:
-                one_won = False
-            if board[x][x] in [0, 1]:
-                two_won = False
-        if one_won:
-            await ctx.send(f'{game["player_one"]} has won the game!')
-            self.games[id] = None
-            return
-        if two_won:
-            await ctx.send(f'{game["player_two"]} has won the game!')
-            self.games[id] = None
-            return
-
-        im_smart = {
+        map = {
             0 : 2,
             1 : 1,
             2 : 0
         }
-        one_won = True
-        two_won = True
+        player_one_won_diagonal_one = True
+        player_one_won_diagonal_two = True
+        player_two_won_diagonal_one = True
+        player_two_won_diagonal_two = True
         for x in range(3):
-            if board[im_smart[x]][x] in [0, 2]:
-                one_won = False
-            if board[im_smart[x]][x] in [0, 1]:
-                two_won = False
-        if one_won:
-            await ctx.send(f'{game["player_one"]} has won the game!')
-            self.games[id] = None
-            return
-        if two_won:
-            await ctx.send(f'{game["player_two"]} has won the game!')
-            self.games[id] = None
-            return
+            if board[x][x] in [0, 2]:
+                player_one_won_diagonal_one = False
+            if board[map[x]][x] in [0, 2]:
+                player_one_won_diagonal_two = False
+            if board[x][x] in [0, 1]:
+                player_two_won_diagonal_one = False
+            if board[map[x]][x] in [0, 1]:
+                player_two_won_diagonal_two = False
+        if player_one_won_diagonal_one or player_one_won_diagonal_two:
+            return game['player_one'], True
+        if player_two_won_diagonal_one or player_two_won_diagonal_two:
+            return game['player_two'], True
 
-        # check stalemate
-        stale_mate = True
+        # check if no one won
+        over = True
         for x in range(3):
             for y in range(3):
                 if board[x][y] == 0:
-                    stale_mate = False
+                    over = False
+        if over:
+            return None, True
+        else:
+            return None, False
 
-        if stale_mate:
-            await ctx.send(f'none of you won, you should be ashamed of yourselves')
-            self.games[id] = None
-            return
-
-    def print_board(self, board):
+    async def _print_board(self, game):
+        board = game['board']
+        cur_player = game['player_one'] if game['turn'] else game['player_two']
         print_board = [
-            '-------------',
-            '|   |   |   |',
-            '-------------',
-            '|   |   |   |',
-            '-------------',
-            '|   |   |   |',
-            '-------------',
-
+            f'-------------',
+            f'|   |   |   |   x: {game["player_one"]}',
+            f'-------------',
+            f'|   |   |   |   o: {game["player_two"]}',
+            f'-------------',
+            f'|   |   |   |   Turn: {cur_player}',
+            f'-------------',
         ]
         for x in range(3):
             for y in range(3):
@@ -221,17 +196,70 @@ class TicTacToe(commands.Cog):
                 line = print_board[(x * 2) + 1]
                 line = str(line[0:(y*4)+1]) + ' ' + piece + ' ' + str(line[(y*4)+4:])
                 print_board[(x * 2) + 1] = line
-
         return "```\n" + '\n'.join(print_board) + '\n```'
 
-    def empty_board(self):
-        return """```
--------------
-|   |   |   |
--------------
-|   |   |   |
--------------
-|   |   |   |
--------------
-```""" # who needs formatering
 
+    async def _move_message(self, ctx, game):
+        moved_player = game['player_two'] if game['turn'] else game['player_one']
+        msg = f'{moved_player} has made a move!\n'
+        msg += await self._print_board(game)
+        await ctx.send(msg)
+
+
+    async def _validate_move(self, ctx, move, game):
+        # check whose turn it is
+        cur_player = game['player_one'] if game['turn'] else game['player_two']
+        if ctx.author.nick != cur_player:
+            await ctx.send(f'It\'s not your turn you bufoon')
+            return None, None, False
+        board = game['board']
+        try:
+            arr = move.split(',')
+            x = int(arr[0])
+            y = int(arr[1])
+            if x not in [0, 1, 2] or y not in [0, 1, 2]:
+                await ctx.send(f'Move out of range: {x},{y}')
+                return None, None, False
+            # check if piece is already placed
+            if board[y][x] != 0:
+                await ctx.send(f'There is already a piece at this position.')
+                return None, None, False
+            return x, y, True
+        except:
+            await ctx.send(f'Invalid move: {move}')
+            return None, None, False
+
+    async def _new_game_message(self, ctx, game):
+        msg  = 'New Tic Tac Toe game started!\n'
+        msg += await self._print_board(game)
+        await ctx.send(msg)
+
+
+    async def _create_game(self, ctx, id, opponent):
+        game = {}
+        game['player_one']  = ctx.author.nick
+        game['player_two']  = opponent
+        game['turn']        = True if random.randint(0,1) == 1 else False # True for player_one, False for player_two
+        game['board']       = [[0 for _ in range(3)] for _ in range(3)]
+        return game
+
+    async def _validate_opponent(self, ctx, opponent) -> Tuple[Optional[str], bool]:
+        members = [member.nick for member in ctx.guild.members if not member.bot]
+        # check if opponent is given by id
+        id, is_id = try_parse_int(opponent)
+        if is_id and id is not None: # id
+            if id >= len(members) or id < 0:
+                await ctx.send(f'No member found with ID {id}')
+                await self.list_members(ctx)
+                return None, False
+            return members[id], True
+        else: # nickname
+            if opponent not in members:
+                await ctx.send(f'No member found with nickname {opponent}')
+                await self.list_members(ctx)
+                return None, False
+            elif opponent == ctx.author.nick:
+                await ctx.send(f'I\'m sorry that you don\'t have any friends :(')
+                return None, False
+            else:
+                return opponent, True
