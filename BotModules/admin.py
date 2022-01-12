@@ -1,8 +1,7 @@
 from discord.ext import commands
 #from BotModules.utils import checks
 import inspect
-import os
-
+from subprocess import run
 # to expose to the eval command
 import datetime
 from collections import Counter
@@ -15,10 +14,11 @@ class Admin(commands.Cog):
         self.config = config
 
     @commands.command()
+    @commands.is_owner()
     async def pull(self, ctx):
         await ctx.send('pulling dat shit')
-        os.system("git pull")
-        os.system("sudo systemctl restart discordbot.service)")
+        run(["git", "pull"])
+        run(["sudo", "systemctl", "restart", "discordbot.service"])
 
     @commands.command(hidden=True)
     @commands.is_owner()
