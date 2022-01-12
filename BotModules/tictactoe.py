@@ -22,8 +22,8 @@ class TicTacToe(commands.Cog):
         self.bot = bot
         self.games = {}
     
-        guild_id = 886924905243877407 # gæve gutter
-        guild: Optional[Guild] = bot.get_guild(guild_id)
+        guild_id: int = 886924905243877407 # gæve gutter
+        guild: Guild = bot.guilds[0]
         self.members = []
         if guild is not None:
             self.members = [member.nick for member in guild.members if not member.bot]
