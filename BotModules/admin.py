@@ -12,21 +12,34 @@ class Admin(commands.Cog):
     def __init__(self, bot:commands.Bot,config):
         self.bot = bot
         self.config = config
-        self.trusted_users = []
+        self.trusted_users = [408192607760416768,917706044942217256]
         
-
+    def is_trusted_user(self, user_id):
+        return user_id in self.trusted_users or user_id == self.bot.owner_id
+        
     @commands.command(hidden=True)
-    @commands.is_owner()
     async def pull(self, ctx):
+        if not self.is_trusted_user(ctx.author.id):
+            await ctx.send('User not verified')
+            return
+        
         await ctx.send('pulling dat shit')
         git_output = run(["git", "pull"], capture_output=True)
-        await ctx.send(git_output.stdout)
-        run(["sudo", "systemctl", "restart", "discordbot.service"])
-        await ctx.send('Service Restarted')
+        git_output = git_output.stdout.decode("utf-8")
+        await ctx.send(git_output)
+        
+        if "Already up to date" in git_output:
+            await ctx.send('No changes')
+        else:
+            run(["sudo", "systemctl", "restart", "discordbot.service"])
+            await ctx.send('Service Restarted')
 
     @commands.command(hidden=True)
     @commands.is_owner()
     async def load(self,ctx, *, module : str):
+        if not self.is_trusted_user(ctx.author.id):
+            await ctx.send('User not verified')
+            return
         """Loads a module."""
         try:
             self.bot.add_cog(module)
@@ -39,6 +52,9 @@ class Admin(commands.Cog):
     @commands.command(hidden=True)
     @commands.is_owner()
     async def unload(self,ctx, *, module : str):
+        if not self.is_trusted_user(ctx.author.id):
+            await ctx.send('User not verified')
+            return
         """Unloads a module."""
         try:
             self.bot.remove_cog(module)
@@ -51,6 +67,9 @@ class Admin(commands.Cog):
     @commands.command(name='reload', hidden=True)
     @commands.is_owner()
     async def _reload(self,ctx, *, module : str):
+        if not self.is_trusted_user(ctx.author.id):
+            await ctx.send('User not verified')
+            return
         """Reloads a module."""
         try:
             cog = None
@@ -68,7 +87,11 @@ class Admin(commands.Cog):
 
     @commands.command(pass_context=True, hidden=True)
     @commands.is_owner()
-    async def debug(self, ctx:commands.Context, *, code : str):
+    async def debug(self, ctx, *, code : str):
+        if not self.is_trusted_user(ctx.author.id):
+            await ctx.send('User not verified')
+            return
+        
         """Evaluates code."""
         code = code.strip('` ')
         python = '```py\n{}\n```'
