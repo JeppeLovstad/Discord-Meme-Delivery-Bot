@@ -48,10 +48,12 @@ class TicTacToe(commands.Cog):
                 return False
 
         self.games[id] = game
-        
-        await ctx.send(f'come, come! {game["player_one"]} and {game["player_two"]} are gonna battle it out with sticks and stones!')
-        await ctx.send(self.empty_board())
-        await ctx.send(f'use command !tictactoe {id} x,y to place a piece')
+        try:
+            await ctx.send(f'come, come! {game["player_one"]} and {game["player_two"]} are gonna battle it out with sticks and stones!')
+            await ctx.send(self.empty_board())
+            await ctx.send(f'use command !tictactoe {id} x,y to place a piece')
+        except Exception as e:
+            await ctx.send(e)
         if game['turn']:
             await ctx.send(f'your turn, {game["player_one"]}')
         else:
