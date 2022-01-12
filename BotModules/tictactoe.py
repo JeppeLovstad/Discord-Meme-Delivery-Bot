@@ -74,7 +74,7 @@ class TicTacToe(commands.Cog):
         game = self.games[id]
 
         # check turn
-        if game.turn: # player_one's turn
+        if game['turn']: # player_one's turn
             if ctx.author.nick != game["player_one"]:
                 await ctx.send(f'you\'re an impatient little shit, aren\'t you?')
                 return
