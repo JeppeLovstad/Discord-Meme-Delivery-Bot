@@ -30,7 +30,7 @@ class TicTacToe(commands.Cog):
     async def get_games(self, ctx):
         for id, game in self.games.items():
             await ctx.send(f'ID: {id}')
-            state = self._print_board(game)
+            state = await self._print_board(game)
             await ctx.send(state)
 
     @commands.command(name='ttt-list')
