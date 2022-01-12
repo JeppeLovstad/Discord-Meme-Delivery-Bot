@@ -11,13 +11,16 @@ class TicTacToe(commands.Cog):
         # check for existing game
         if arg1 in self.games:
             if self.games[arg1] != None:
-                self.turn(ctx, arg1, arg2)
+                await self.turn(ctx, arg1, arg2)
         # new game
-        if not self._new_game(ctx, arg1, arg2):
+        if not await self._new_game(ctx, arg1, arg2):
+            await ctx.send('i did not understand that')
             return
     
     async def _new_game(self, ctx, other_player, id):
         possible_players = ctx.guild.members
+        for player in possible_players:
+            await ctx.send(player)
         if other_player not in possible_players:
             await ctx.send(f'who {other_player}?')
             return False
