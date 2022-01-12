@@ -19,6 +19,10 @@ class Admin(commands.Cog):
         
     @commands.command(hidden=True)
     async def pull(self, ctx):
+        if not self.is_trusted_user(ctx.author.id):
+            await ctx.send('User not verified')
+            return
+        
         await ctx.send('pulling dat shit')
         git_output = run(["git", "pull"], capture_output=True)
         await ctx.send(git_output.stdout)
@@ -28,6 +32,9 @@ class Admin(commands.Cog):
     @commands.command(hidden=True)
     @commands.is_owner()
     async def load(self,ctx, *, module : str):
+        if not self.is_trusted_user(ctx.author.id):
+            await ctx.send('User not verified')
+            return
         """Loads a module."""
         try:
             self.bot.add_cog(module)
@@ -40,6 +47,9 @@ class Admin(commands.Cog):
     @commands.command(hidden=True)
     @commands.is_owner()
     async def unload(self,ctx, *, module : str):
+        if not self.is_trusted_user(ctx.author.id):
+            await ctx.send('User not verified')
+            return
         """Unloads a module."""
         try:
             self.bot.remove_cog(module)
@@ -52,6 +62,9 @@ class Admin(commands.Cog):
     @commands.command(name='reload', hidden=True)
     @commands.is_owner()
     async def _reload(self,ctx, *, module : str):
+        if not self.is_trusted_user(ctx.author.id):
+            await ctx.send('User not verified')
+            return
         """Reloads a module."""
         try:
             cog = None
@@ -69,7 +82,11 @@ class Admin(commands.Cog):
 
     @commands.command(pass_context=True, hidden=True)
     @commands.is_owner()
-    async def debug(self, ctx:commands.Context, *, code : str):
+    async def debug(self, ctx, *, code : str):
+        if not self.is_trusted_user(ctx.author.id):
+            await ctx.send('User not verified')
+            return
+        
         """Evaluates code."""
         code = code.strip('` ')
         python = '```py\n{}\n```'
