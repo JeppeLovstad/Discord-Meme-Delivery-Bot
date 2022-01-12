@@ -59,11 +59,11 @@ class TicTacToe(commands.Cog):
         # print new game message
         await self._new_game_message(ctx, game)
 
-    @commands.command(name='ttt move')
+    @commands.command(name='ttt-move')
     async def move_short(self, ctx, id, move):
         await self.move(ctx, id, move)
 
-    @commands.command(name='tictactoe move')
+    @commands.command(name='tictactoe-move')
     async def move(self, ctx, id, move):
         # check if id is valid
         game = self.games.get(id)
@@ -236,7 +236,7 @@ class TicTacToe(commands.Cog):
         return game
 
     async def _validate_opponent(self, ctx, opponent) -> Tuple[Optional[str], bool]:
-        members = [member.nick for member in ctx.guild.members]
+        members = [member.nick for member in ctx.guild.members if not member.bot]
         # check if opponent is given by id
         id, is_id = try_parse_int(opponent)
         if is_id and id is not None: # id
