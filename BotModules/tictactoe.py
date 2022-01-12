@@ -223,7 +223,7 @@ class TicTacToe(commands.Cog):
 
         return "```\n" + '\n'.join(print_board) + '\n```'
 
-    def empty_board():
+    def empty_board(self):
         return """```
 -------------
 |   |   |   |
