@@ -43,7 +43,7 @@ class TicTacToe(commands.Cog):
     @commands.command(name='tictactoe-new')
     async def new_game(self, ctx, id, opponent):
         # check if id is in use
-        if self.games.get(id) == None:
+        if self.games.get(id) != None:
             await ctx.send(f'ID {id} is already in use.')
             return
         
