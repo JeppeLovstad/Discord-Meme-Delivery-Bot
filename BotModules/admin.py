@@ -25,9 +25,14 @@ class Admin(commands.Cog):
         
         await ctx.send('pulling dat shit')
         git_output = run(["git", "pull"], capture_output=True)
-        await ctx.send(git_output.stdout)
-        run(["sudo", "systemctl", "restart", "discordbot.service"])
-        await ctx.send('Service Restarted')
+        git_output = git_output.stdout.decode("utf-8")
+        await ctx.send(git_output)
+        
+        if "Already up to date" in git_output:
+            await ctx.send('No changes')
+        else:
+            run(["sudo", "systemctl", "restart", "discordbot.service"])
+            await ctx.send('Service Restarted')
 
     @commands.command(hidden=True)
     @commands.is_owner()
