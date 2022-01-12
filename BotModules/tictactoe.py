@@ -1,5 +1,6 @@
 from discord.ext import commands
 import random
+import traceback
 
 class TicTacToe(commands.Cog):
     def __init__(self, config, bot: commands.Bot):
@@ -22,8 +23,8 @@ class TicTacToe(commands.Cog):
             # new game
             if arg1 is not None:
                 await self._new_game(ctx, arg1, arg2)
-        except Exception as e:
-            await ctx.send(e)
+        except Exception:
+            await ctx.send(traceback.format_exc())
     
     async def _new_game(self, ctx, other_player, id):
         possible_players = [player.nick for player in ctx.guild.members if not player.bot]
