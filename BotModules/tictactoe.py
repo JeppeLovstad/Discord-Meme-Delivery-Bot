@@ -24,9 +24,10 @@ class TicTacToe(commands.Cog):
     
         guild_id = 886924905243877407 # gæve gutter
         guild: Optional[Guild] = bot.get_guild(guild_id)
+        self.members = []
         if guild is not None:
             self.members = [member.nick for member in guild.members if not member.bot]
-        self.members.sort()
+            self.members.sort()
 
 
     @commands.command(name='ttt list')
