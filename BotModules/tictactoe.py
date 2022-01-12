@@ -32,7 +32,7 @@ class TicTacToe(commands.Cog):
         game = {
             'player_one'            : ctx.author.name,
             'player_two'            : other_player,
-            'board'        : [[0 for _ in range(3)] for _ in range(3)],
+            'board'                 : [[0 for _ in range(3)] for _ in range(3)],
             'turn'                  : turn # true for player_one, false for player_two
         }
         if id is None:
@@ -70,11 +70,11 @@ class TicTacToe(commands.Cog):
 
         # check turn
         if game.turn: # player_one's turn
-            if ctx.author != game["player_one"]:
+            if ctx.author.nick != game["player_one"]:
                 await ctx.send(f'you\'re an impatient little shit, aren\'t you?')
                 return
         else: # player_two's turn
-            if ctx.author != game["player_two"]:
+            if ctx.author.nick != game["player_two"]:
                 await ctx.send(f'you\'re an impatient little shit, aren\'t you?')
         
         # parse move
