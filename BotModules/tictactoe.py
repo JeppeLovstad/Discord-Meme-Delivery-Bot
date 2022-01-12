@@ -8,7 +8,12 @@ class TicTacToe(commands.Cog):
         self.games = {}
     
     @commands.command()
-    async def tictactoe(self, ctx, arg1, arg2=None):
+    async def tictactoe(self, ctx, arg1=None, arg2=None):
+        if arg1 is None and arg2 is None:
+            possible_players = [player.nick for player in ctx.guild.members if not player.bot]
+            await ctx.send('possible players:')
+            for player in possible_players:
+                await ctx.send(player)
         # check for existing game
         if arg1 in self.games:
             if self.games[arg1] != None:
@@ -18,9 +23,6 @@ class TicTacToe(commands.Cog):
     
     async def _new_game(self, ctx, other_player, id):
         possible_players = [player.nick for player in ctx.guild.members if not player.bot]
-        await ctx.send('possible players:')
-        for player in possible_players:
-            await ctx.send(player)
         if other_player not in possible_players:
             await ctx.send(f'who {other_player}?')
             return False
@@ -30,7 +32,7 @@ class TicTacToe(commands.Cog):
         
         turn = True if random.randint(0, 1) == 1 else False
         game = {
-            'player_one'            : ctx.author.name,
+            'player_one'            : ctx.author.nick,
             'player_two'            : other_player,
             'board'                 : [[0 for _ in range(3)] for _ in range(3)],
             'turn'                  : turn # true for player_one, false for player_two
@@ -217,8 +219,6 @@ class TicTacToe(commands.Cog):
                 print_board[(x * 2) + 1] = line
 
         return "```\n" + '\n'.join(print_board) + '\n```'
-
-
 
     def empty_board():
         return """```
