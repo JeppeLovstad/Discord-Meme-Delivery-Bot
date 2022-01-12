@@ -1,9 +1,6 @@
-from os import truncate
 from typing import Optional, Tuple
 from discord.ext import commands
-from discord import Guild
 import random
-import traceback
 
 
 #####################
