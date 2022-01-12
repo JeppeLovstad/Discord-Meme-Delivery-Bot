@@ -140,7 +140,7 @@ class TicTacToe(commands.Cog):
                 if board[y][x] in [0, 1]:
                     player_two_won_vertical = False
             if player_one_won_horizontal or player_one_won_vertical:
-                return game['player_two'], True
+                return game['player_one'], True
             if player_two_won_horizontal or player_two_won_vertical:
                 return game['player_two'], True
         
