@@ -256,6 +256,10 @@ class TicTacToe(commands.Cog):
                 await ctx.send(f'No member found with ID {id}')
                 await self.list_members(ctx)
                 return None, False
+            opponent = members[id]
+            if opponent == ctx.author.nick:
+                await ctx.send(f'I\'m sorry that you don\'t have any friends :(')
+                return None, False
             return members[id], True
         else: # nickname
             if opponent not in members:
