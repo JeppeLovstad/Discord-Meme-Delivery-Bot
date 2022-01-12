@@ -200,7 +200,7 @@ class TicTacToe(commands.Cog):
             self.games[id] = None
             return
 
-    def print_board(board):
+    def print_board(self, board):
         print_board = [
             '-------------',
             '|   |   |   |',
