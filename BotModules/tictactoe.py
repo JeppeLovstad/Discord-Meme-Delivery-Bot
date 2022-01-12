@@ -1,5 +1,7 @@
 from os import truncate
+from typing import Optional, Tuple
 from discord.ext import commands
+from discord import Guild
 import random
 import traceback
 
@@ -21,8 +23,9 @@ class TicTacToe(commands.Cog):
         self.games = {}
     
         guild_id = 886924905243877407 # gæve gutter
-        guild = bot.get_guild(guild_id)
-        self.members = [member.nick for member in guild.members if not member.bot]
+        guild: Optional[Guild] = bot.get_guild(guild_id)
+        if guild is not None:
+            self.members = [member.nick for member in guild.members if not member.bot]
         self.members.sort()
 
 
@@ -50,12 +53,12 @@ class TicTacToe(commands.Cog):
             return
         
         # validate opponent
-        opponent, valid = self._validate_opponent(ctx, opponent)
+        opponent, valid = await self._validate_opponent(ctx, opponent)
         if not valid:
             return
         
         # create new game
-        game = await self._create_game(ctx, opponent)
+        game = await self._create_game(ctx, id, opponent)
         self.games[id] = game
         
         # print new game message
@@ -68,10 +71,10 @@ class TicTacToe(commands.Cog):
     @commands.command(name='tictactoe move')
     async def move(self, ctx, id, move):
         # check if id is valid
-        if self.games.get(id) == None:
+        game = self.games.get(id)
+        if game == None:
             await ctx.send(f'No game found with ID {id}')
             return
-        game = self.games.get(id)
 
         # check if move is valid
         x, y, valid = await self._validate_move(ctx, move, game['board'])
@@ -213,7 +216,7 @@ class TicTacToe(commands.Cog):
         msg += f'Player one: {game["player_one"]}\n'
         msg += f'Player two: {game["player_two"]}\n'
         msg += f'Turn: {game["player_one"] if game["turn"] else game["player_two"]}\n'
-        msg += self._empty_board
+        msg += await self._empty_board()
         await ctx.send(msg)
     
     async def _empty_board(self):
@@ -237,10 +240,10 @@ class TicTacToe(commands.Cog):
         game['board']       = [[0 for _ in range(3)] for _ in range(3)]
         return game
 
-    async def _validate_opponent(self, ctx, opponent):
+    async def _validate_opponent(self, ctx, opponent) -> Tuple[Optional[str], bool]:
         # check if opponent is given by id
         id, is_id = try_parse_int(opponent)
-        if is_id: # id
+        if is_id and id is not None: # id
             if id >= len(self.members) or id < 0:
                 await ctx.send(f'No member found with ID {id}')
                 await self.list_members(ctx)
