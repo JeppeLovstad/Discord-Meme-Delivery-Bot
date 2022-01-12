@@ -42,9 +42,10 @@ class TicTacToe(commands.Cog):
     @commands.command(name='tictactoe-games')
     async def get_games(self, ctx):
         for id, game in self.games.items():
-            await ctx.send(f'ID: {id}')
-            state = await self._print_board(game)
-            await ctx.send(state)
+            if game is not None:
+                await ctx.send(f'ID: {id}')
+                state = await self._print_board(game)
+                await ctx.send(state)
 
     @commands.command(name='ttt-list')
     async def list_members_short(self, ctx):
@@ -105,6 +106,7 @@ class TicTacToe(commands.Cog):
 
         # update turn
         game['turn'] = not game['turn']
+        self.games[id] = game
 
         # print move message
         await self._move_message(ctx, game)
@@ -118,7 +120,6 @@ class TicTacToe(commands.Cog):
             else:
                 await ctx.send(f'No one won the game.')
             self.games[id] = None
-        self.games[id] = game
 
     async def _is_game_over(self, game):
         board = game['board']
