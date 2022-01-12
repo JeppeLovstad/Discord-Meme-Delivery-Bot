@@ -12,7 +12,7 @@ class Admin(commands.Cog):
     def __init__(self, bot:commands.Bot,config):
         self.bot = bot
         self.config = config
-        self.trusted_users = [408192607760416768,917706044942217256,103111970751799296]
+        self.trusted_users = [408192607760416768,917706044942217256,103111970751799296,101649687995486208]
         
     def is_trusted_user(self, user_id):
         return user_id in self.trusted_users or user_id == self.bot.owner_id
