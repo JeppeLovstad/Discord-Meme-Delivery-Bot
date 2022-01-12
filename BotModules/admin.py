@@ -18,6 +18,16 @@ class Admin(commands.Cog):
         return user_id in self.trusted_users or user_id == self.bot.owner_id
         
     @commands.command(hidden=True)
+    async def log(self, ctx, limit:int=10):
+        if not self.is_trusted_user(ctx.author.id):
+            await ctx.send('User not verified')
+            return
+           
+        git_output = run(["journalctl", "--unit=discordbot.service", "-n 50", "--no-pager"], capture_output=True)
+        git_output = git_output.stdout.decode("utf-8")
+        await ctx.send(git_output)
+        
+    @commands.command(hidden=True)
     async def pull(self, ctx):
         if not self.is_trusted_user(ctx.author.id):
             await ctx.send('User not verified')
