@@ -29,11 +29,11 @@ class TicTacToe(commands.Cog):
         self.members.sort()
 
 
-    @commands.command(name='ttt list')
+    @commands.command(name='ttt-list')
     async def list_members_short(self, ctx):
         await self.list_members(ctx)
 
-    @commands.command(name='tictactoe list')
+    @commands.command(name='tictactoe-list')
     async def list_members(self, ctx):
         id = 0
         await ctx.send(f'Members (Use id or nickname to start a new game with a player):')
@@ -41,11 +41,11 @@ class TicTacToe(commands.Cog):
             await ctx.send(f'{id}: {member}')
             id += 1
 
-    @commands.command(name='ttt new')
+    @commands.command(name='ttt-new')
     async def new_game_short(self, ctx, id, opponent):
         await self.new_game(ctx, id, opponent)
 
-    @commands.command(name='tictactoe new')
+    @commands.command(name='tictactoe-new')
     async def new_game(self, ctx, id, opponent):
         # check if id is in use
         if self.games.get(id) == None:
