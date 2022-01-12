@@ -22,12 +22,16 @@ class TicTacToe(commands.Cog):
         self.bot = bot
         self.games = {}
 
+    @commands.command(name='ttt-games')
+    async def get_games_short(self, ctx):
+        await self.get_games(ctx)
 
     @commands.command(name='tictactoe-games')
     async def get_games(self, ctx):
         for id, game in self.games.items():
             await ctx.send(f'ID: {id}')
-            await self._print_board(game)
+            state = self._print_board(game)
+            await ctx.send(state)
 
     @commands.command(name='ttt-list')
     async def list_members_short(self, ctx):
