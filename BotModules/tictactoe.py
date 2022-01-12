@@ -38,11 +38,15 @@ class TicTacToe(commands.Cog):
 
     @commands.command(name='tictactoe-games')
     async def get_games(self, ctx):
+        ctr = 0
         for id, game in self.games.items():
             if game is not None:
                 await ctx.send(f'ID: {id}')
                 state = await self._print_board(game)
                 await ctx.send(state)
+                ctr += 1
+        if ctr == 0:
+            await ctx.send('There are no active games.')
 
     @commands.command(name='ttt-list')
     async def list_members_short(self, ctx):
