@@ -21,13 +21,6 @@ class TicTacToe(commands.Cog):
         self.config = config
         self.bot = bot
         self.games = {}
-    
-        guild_id: int = 886924905243877407 # gæve gutter
-        guild: Guild = bot.guilds[0]
-        self.members = []
-        if guild is not None:
-            self.members = [member.nick for member in guild.members if not member.bot]
-            self.members.sort()
 
 
     @commands.command(name='ttt-list')
@@ -38,7 +31,8 @@ class TicTacToe(commands.Cog):
     async def list_members(self, ctx):
         id = 0
         await ctx.send(f'Members (Use id or nickname to start a new game with a player):')
-        for member in self.members:
+        members = [member.nick for member in ctx.guild.members]
+        for member in members:
             await ctx.send(f'{id}: {member}')
             id += 1
 
@@ -242,16 +236,17 @@ class TicTacToe(commands.Cog):
         return game
 
     async def _validate_opponent(self, ctx, opponent) -> Tuple[Optional[str], bool]:
+        members = [member.nick for member in ctx.guild.members]
         # check if opponent is given by id
         id, is_id = try_parse_int(opponent)
         if is_id and id is not None: # id
-            if id >= len(self.members) or id < 0:
+            if id >= len(members) or id < 0:
                 await ctx.send(f'No member found with ID {id}')
                 await self.list_members(ctx)
                 return None, False
-            return self.members[id], True
+            return members[id], True
         else: # nickname
-            if opponent not in self.members:
+            if opponent not in members:
                 await ctx.send(f'No member found with nickname {opponent}')
                 await self.list_members(ctx)
                 return None, False
