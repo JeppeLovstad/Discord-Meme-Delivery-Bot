@@ -17,7 +17,7 @@ class TicTacToe(commands.Cog):
         await self._new_game(ctx, arg1, arg2)
     
     async def _new_game(self, ctx, other_player, id):
-        possible_players = [player.nick for player in ctx.guild.members]
+        possible_players = [player.nick for player in ctx.guild.members if not player.bot]
         await ctx.send('possible players:')
         for player in possible_players:
             await ctx.send(player)
