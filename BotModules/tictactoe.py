@@ -96,12 +96,12 @@ class TicTacToe(commands.Cog):
             return
 
         # check if valid move
-        if game[x][y] != 0:
+        if game['board'][y][x] != 0:
             await ctx.send(f'someone here dawg, find another place to put your weird signs')
             return
         
         # make move and print board
-        game["board"][x][y] = 1 if game["turn"] else 2
+        game["board"][y][x] = 1 if game["turn"] else 2
         player = game['player_one'] if game['turn'] else game['player_two']
         await ctx.send(f'{player} has managed to write something i understand!')
         await ctx.send(self.print_board(game['board']))
