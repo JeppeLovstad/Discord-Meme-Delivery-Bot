@@ -171,7 +171,7 @@ class TicTacToe(commands.Cog):
         over = True
         for x in range(3):
             for y in range(3):
-                if board[x][y] != 0:
+                if board[x][y] == 0:
                     over = False
         if over:
             return None, True
