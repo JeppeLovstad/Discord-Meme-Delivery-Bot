@@ -15,7 +15,6 @@ class TicTacToe(commands.Cog):
         # new game
         if not await self._new_game(ctx, arg1, arg2):
             await ctx.send('i did not understand that')
-            return
     
     async def _new_game(self, ctx, other_player, id):
         possible_players = ctx.guild.members
