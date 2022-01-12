@@ -19,7 +19,8 @@ class TicTacToe(commands.Cog):
             if self.games[arg1] != None:
                 await self.turn(ctx, arg1, arg2)
         # new game
-        await self._new_game(ctx, arg1, arg2)
+        if arg1 is not None:
+            await self._new_game(ctx, arg1, arg2)
     
     async def _new_game(self, ctx, other_player, id):
         possible_players = [player.nick for player in ctx.guild.members if not player.bot]
