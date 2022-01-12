@@ -10,7 +10,7 @@ class TicTacToe(commands.Cog):
     async def tictactoe(self, ctx, arg1, arg2=None):
         # check for existing game
         if arg1 in self.games:
-            if self.games[arg1] =! None:
+            if self.games[arg1] != None:
                 self.turn(ctx, arg1, arg2)
         # new game
         if not self._new_game(ctx, arg1, arg2):
