@@ -73,7 +73,7 @@ class TicTacToe(commands.Cog):
                 return
 
             # check if move is valid
-            x, y, valid = await self._validate_move(ctx, move, game['board'])
+            x, y, valid = await self._validate_move(ctx, move, game)
             if not valid:
                 return
 
@@ -81,11 +81,12 @@ class TicTacToe(commands.Cog):
             val = 1 if game['turn'] else 2
             game['board'][x][y] = val
 
+            # update turn
+            game['turn'] = not game['turn']
+
             # print move message
             await self._move_message(ctx, game)
 
-            # update turn
-            game['turn'] = not game['turn']
 
             # check if game is over
             winner, done = await self._is_game_over(game)
@@ -155,15 +156,18 @@ class TicTacToe(commands.Cog):
             return None, True
         else:
             return None, False
-    async def _print_board(self, board):
+
+    async def _print_board(self, game):
+        board = game['board']
+        cur_player = game['player_one'] if game['turn'] else game['player_two']
         print_board = [
-            '-------------',
-            '|   |   |   |',
-            '-------------',
-            '|   |   |   |',
-            '-------------',
-            '|   |   |   |',
-            '-------------',
+            f'-------------',
+            f'|   |   |   |   x: {game["player_one"]}',
+            f'-------------',
+            f'|   |   |   |   o: {game["player_two"]}',
+            f'-------------',
+            f'|   |   |   |   Turn: {cur_player}',
+            f'-------------',
         ]
         for x in range(3):
             for y in range(3):
@@ -178,11 +182,9 @@ class TicTacToe(commands.Cog):
 
 
     async def _move_message(self, ctx, game):
-        cur_player = game['player_one'] if game['turn'] else game['player_two']
-        other_player = game['player_two'] if game['turn'] else game['player_one']
-        msg = f'{cur_player} has made a move!\n'
+        moved_player = game['player_two'] if game['turn'] else game['player_one']
+        msg = f'{moved_player} has made a move!\n'
         msg += await self._print_board(game['board'])
-        msg += f'Your turn to make a move, {other_player}!'
         await ctx.send(msg)
 
 
@@ -211,23 +213,8 @@ class TicTacToe(commands.Cog):
 
     async def _new_game_message(self, ctx, game):
         msg  = 'New Tic Tac Toe game started!\n'
-        msg += f'Player one: {game["player_one"]}\n'
-        msg += f'Player two: {game["player_two"]}\n'
-        msg += f'Turn: {game["player_one"] if game["turn"] else game["player_two"]}\n'
-        msg += await self._empty_board()
+        msg += await self._print_board(game)
         await ctx.send(msg)
-    
-    async def _empty_board(self):
-        board  = '```\n'
-        board += '-------------\n'
-        board += '|   |   |   |\n'
-        board += '-------------\n'
-        board += '|   |   |   |\n'
-        board += '-------------\n'
-        board += '|   |   |   |\n'
-        board += '-------------\n'
-        board += '```'
-        return board
 
 
     async def _create_game(self, ctx, id, opponent):
