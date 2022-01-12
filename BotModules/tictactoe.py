@@ -22,6 +22,11 @@ class TicTacToe(commands.Cog):
         self.bot = bot
         self.games = {}
 
+
+    @commands.command(name='ttt-delete')
+    async def delete_game_short(self, ctx, id):
+        await self.delete_game(ctx, id)
+
     @commands.command(name='tictactoe-delete')
     async def delete_game(self, ctx, id):
         if self.games.get(id) == None:
@@ -29,7 +34,6 @@ class TicTacToe(commands.Cog):
         else:
             self.games[id] = None
             await ctx.send(f'Game with ID {id} deleted.')
-        
 
     @commands.command(name='ttt-games')
     async def get_games_short(self, ctx):
@@ -84,40 +88,37 @@ class TicTacToe(commands.Cog):
 
     @commands.command(name='tictactoe-move')
     async def move(self, ctx, id, move):
-        try:
-            # check if id is valid
-            game = self.games.get(id)
-            if game == None:
-                await ctx.send(f'No game found with ID {id}')
-                return
+        # check if id is valid
+        game = self.games.get(id)
+        if game == None:
+            await ctx.send(f'No game found with ID {id}')
+            return
 
-            # check if move is valid
-            x, y, valid = await self._validate_move(ctx, move, game)
-            if not valid:
-                return
+        # check if move is valid
+        x, y, valid = await self._validate_move(ctx, move, game)
+        if not valid:
+            return
 
-            # update board
-            val = 1 if game['turn'] else 2
-            game['board'][x][y] = val
+        # update board
+        val = 1 if game['turn'] else 2
+        game['board'][x][y] = val
 
-            # update turn
-            game['turn'] = not game['turn']
+        # update turn
+        game['turn'] = not game['turn']
 
-            # print move message
-            await self._move_message(ctx, game)
+        # print move message
+        await self._move_message(ctx, game)
 
 
-            # check if game is over
-            winner, done = await self._is_game_over(game)
-            if done:
-                if winner is not None:
-                    await ctx.send(f'{winner} won the game!')
-                else:
-                    await ctx.send(f'No one won the game.')
-                self.games[id] = None
-            self.games[id] = game
-        except Exception as e:
-            await ctx.send(traceback.format_exc())
+        # check if game is over
+        winner, done = await self._is_game_over(game)
+        if done:
+            if winner is not None:
+                await ctx.send(f'{winner} won the game!')
+            else:
+                await ctx.send(f'No one won the game.')
+            self.games[id] = None
+        self.games[id] = game
 
     async def _is_game_over(self, game):
         board = game['board']
