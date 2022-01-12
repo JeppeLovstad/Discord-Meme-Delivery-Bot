@@ -97,7 +97,7 @@ class TicTacToe(commands.Cog):
                 self.games[id] = None
             self.games[id] = game
         except Exception as e:
-            await ctx.send(e)
+            await ctx.send(traceback.format_exc())
 
     async def _is_game_over(self, game):
         board = game['board']
