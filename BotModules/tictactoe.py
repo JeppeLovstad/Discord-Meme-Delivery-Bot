@@ -21,13 +21,6 @@ class TicTacToe(commands.Cog):
         self.config = config
         self.bot = bot
         self.games = {}
-    
-        guild_id = 886924905243877407 # gæve gutter
-        guild: Optional[Guild] = bot.get_guild(guild_id)
-        self.members = []
-        if guild is not None:
-            self.members = [member.nick for member in guild.members if not member.bot]
-            self.members.sort()
 
 
     @commands.command(name='ttt-list')
@@ -38,7 +31,8 @@ class TicTacToe(commands.Cog):
     async def list_members(self, ctx):
         id = 0
         await ctx.send(f'Members (Use id or nickname to start a new game with a player):')
-        for member in self.members:
+        members = [member.nick for member in ctx.guild.members if not member.bot]
+        for member in members:
             await ctx.send(f'{id}: {member}')
             id += 1
 
@@ -49,7 +43,7 @@ class TicTacToe(commands.Cog):
     @commands.command(name='tictactoe-new')
     async def new_game(self, ctx, id, opponent):
         # check if id is in use
-        if self.games.get(id) == None:
+        if self.games.get(id) != None:
             await ctx.send(f'ID {id} is already in use.')
             return
         
@@ -65,11 +59,11 @@ class TicTacToe(commands.Cog):
         # print new game message
         await self._new_game_message(ctx, game)
 
-    @commands.command(name='ttt move')
+    @commands.command(name='ttt-move')
     async def move_short(self, ctx, id, move):
         await self.move(ctx, id, move)
 
-    @commands.command(name='tictactoe move')
+    @commands.command(name='tictactoe-move')
     async def move(self, ctx, id, move):
         # check if id is valid
         game = self.games.get(id)
@@ -242,16 +236,17 @@ class TicTacToe(commands.Cog):
         return game
 
     async def _validate_opponent(self, ctx, opponent) -> Tuple[Optional[str], bool]:
+        members = [member.nick for member in ctx.guild.members if not member.bot]
         # check if opponent is given by id
         id, is_id = try_parse_int(opponent)
         if is_id and id is not None: # id
-            if id >= len(self.members) or id < 0:
+            if id >= len(members) or id < 0:
                 await ctx.send(f'No member found with ID {id}')
                 await self.list_members(ctx)
                 return None, False
-            return self.members[id], True
+            return members[id], True
         else: # nickname
-            if opponent not in self.members:
+            if opponent not in members:
                 await ctx.send(f'No member found with nickname {opponent}')
                 await self.list_members(ctx)
                 return None, False
