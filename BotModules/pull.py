@@ -8,5 +8,6 @@ class Pepe(commands.Cog):
 
     @commands.command()
     async def pull(self, ctx):
+        await ctx.send('pulling dat shit')
         os.system("git pull")
         os.system("sudo systemctl restart discordbot.service)")
