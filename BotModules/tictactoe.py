@@ -31,7 +31,7 @@ class TicTacToe(commands.Cog):
     async def list_members(self, ctx):
         id = 0
         await ctx.send(f'Members (Use id or nickname to start a new game with a player):')
-        members = [member.nick for member in ctx.guild.members]
+        members = [member.nick for member in ctx.guild.members if not member.bot]
         for member in members:
             await ctx.send(f'{id}: {member}')
             id += 1
