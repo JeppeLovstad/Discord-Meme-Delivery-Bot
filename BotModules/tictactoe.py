@@ -85,6 +85,9 @@ class TicTacToe(commands.Cog):
         # print move message
         await self._move_message(ctx, game)
 
+        # update turn
+        game['turn'] = not game['turn']
+
         # check if game is over
         winner, done = await self._is_game_over(game)
         if done:
@@ -93,6 +96,7 @@ class TicTacToe(commands.Cog):
             else:
                 await ctx.send(f'No one won the game.')
             self.games[id] = None
+        self.games[id] = game
 
     async def _is_game_over(self, game):
         board = game['board']
@@ -181,7 +185,13 @@ class TicTacToe(commands.Cog):
         await ctx.send(msg)
 
 
-    async def _validate_move(self, ctx, move, board):
+    async def _validate_move(self, ctx, move, game):
+        # check whose turn it is
+        cur_player = game['player_one'] if game['turn'] else game['player_two']
+        if ctx.author.nick != cur_player:
+            await ctx.send(f'It\'s not your turn you bufoon')
+            return None, None, False
+        board = game['board']
         try:
             arr = move.split(',')
             x = int(arr[0])
