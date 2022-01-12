@@ -9,18 +9,21 @@ class TicTacToe(commands.Cog):
     
     @commands.command()
     async def tictactoe(self, ctx, arg1=None, arg2=None):
-        if arg1 is None and arg2 is None:
-            possible_players = [player.nick for player in ctx.guild.members if not player.bot]
-            await ctx.send('possible players:')
-            for player in possible_players:
-                await ctx.send(player)
-        # check for existing game
-        if arg1 in self.games:
-            if self.games[arg1] != None:
-                await self.turn(ctx, arg1, arg2)
-        # new game
-        if arg1 is not None:
-            await self._new_game(ctx, arg1, arg2)
+        try:
+            if arg1 is None and arg2 is None:
+                possible_players = [player.nick for player in ctx.guild.members if not player.bot]
+                await ctx.send('possible players:')
+                for player in possible_players:
+                    await ctx.send(player)
+            # check for existing game
+            if arg1 in self.games:
+                if self.games[arg1] != None:
+                    await self.turn(ctx, arg1, arg2)
+            # new game
+            if arg1 is not None:
+                await self._new_game(ctx, arg1, arg2)
+        except Exception as e:
+            await ctx.send(e)
     
     async def _new_game(self, ctx, other_player, id):
         possible_players = [player.nick for player in ctx.guild.members if not player.bot]
@@ -48,12 +51,9 @@ class TicTacToe(commands.Cog):
                 return False
 
         self.games[id] = game
-        try:
-            await ctx.send(f'come, come! {game["player_one"]} and {game["player_two"]} are gonna battle it out with sticks and stones!')
-            await ctx.send(self.empty_board())
-            await ctx.send(f'use command !tictactoe {id} x,y to place a piece')
-        except Exception as e:
-            await ctx.send(e)
+        await ctx.send(f'come, come! {game["player_one"]} and {game["player_two"]} are gonna battle it out with sticks and stones!')
+        await ctx.send(self.empty_board())
+        await ctx.send(f'use command !tictactoe {id} x,y to place a piece')
         if game['turn']:
             await ctx.send(f'your turn, {game["player_one"]}')
         else:
