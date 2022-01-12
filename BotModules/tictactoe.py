@@ -1,4 +1,5 @@
 from discord.ext import commands
+import random
 
 class TicTacToe(commands.Cog):
     def __init__(self, config, bot: commands.Bot):
@@ -16,22 +17,23 @@ class TicTacToe(commands.Cog):
         await self._new_game(ctx, arg1, arg2)
     
     async def _new_game(self, ctx, other_player, id):
-        possible_players = [player.name for player in ctx.guild.members]
+        possible_players = [player.nick for player in ctx.guild.members]
         await ctx.send('possible players:')
         for player in possible_players:
-            await ctx.send(player.name)
+            await ctx.send(player)
         if other_player not in possible_players:
             await ctx.send(f'who {other_player}?')
             return False
-        if other_player == ctx.author.name:
+        if other_player == ctx.author.nick:
             await ctx.send(f'i will not waste cpu cycles for you to play tictactoe with yourself')
             return False
         
+        turn = True if random.randint(0, 1) == 1 else False
         game = {
-            'player_one'            : ctx.author,
+            'player_one'            : ctx.author.name,
             'player_two'            : other_player,
             'board'        : [[0 for _ in range(3)] for _ in range(3)],
-            'turn'                  : True # true for player_one, false for player_two
+            'turn'                  : turn # true for player_one, false for player_two
         }
         if id is None:
             await ctx.send('y u no give id')
@@ -95,6 +97,10 @@ class TicTacToe(commands.Cog):
         await ctx.send(f'{player} has managed to write something i understand!')
         await ctx.send(self.print_board(game['board']))
         game['turn'] = not game['turn']
+        if game['turn']:
+            await ctx.send(f'your turn, {game["player_one"]}')
+        else:
+            await ctx.send(f'your turn, {game["player_two"]}')
         self.games[id] = game
         return
 
