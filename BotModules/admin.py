@@ -12,13 +12,17 @@ class Admin(commands.Cog):
     def __init__(self, bot:commands.Bot,config):
         self.bot = bot
         self.config = config
+        self.trusted_users = []
+        
 
-    @commands.command()
+    @commands.command(hidden=True)
     @commands.is_owner()
     async def pull(self, ctx):
         await ctx.send('pulling dat shit')
-        run(["git", "pull"])
+        git_output = run(["git", "pull"], capture_output=True)
+        await ctx.send(git_output.stdout)
         run(["sudo", "systemctl", "restart", "discordbot.service"])
+        await ctx.send('Service Restarted')
 
     @commands.command(hidden=True)
     @commands.is_owner()
