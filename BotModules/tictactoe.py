@@ -310,6 +310,7 @@ class TicTacToe(commands.Cog):
         type = None
         # parse args
         for arg in args:
+            await ctx.send(f'Parsing arg {arg}')
             try:
                 arr = arg.split('=')
                 key = str(arr[0])
