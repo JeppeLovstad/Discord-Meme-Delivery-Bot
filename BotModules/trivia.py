@@ -217,7 +217,10 @@ class Trivia(commands.Cog):
         msg  = f'Lobby started (type \'!join\' to join the lobby):\n'
         msg += '```\n'
         for key, val in args.items():
-            val = 'Any' if val is None else val
+            if key == 'category':
+                val = 'Any' if val is None else self.categories[val]
+            else:
+                val = 'Any' if val is None else val
             msg += f'{arg_formatter[key]}: {val}\n'
         msg += '```'
         await ctx.send(msg)
@@ -248,6 +251,7 @@ class Trivia(commands.Cog):
         await ctx.send(f'{guesser} has guessed!')
 
         if self._all_have_guessed():
+            await ctx.send('Everyone have guessed!')
             await self._show_results_for_question(ctx)
             await self._advance_question(ctx)
 
@@ -261,8 +265,7 @@ class Trivia(commands.Cog):
 
     async def _show_results_for_question(self, ctx):
         self._update_score()
-        msg  = 'Everyone have guessed!\n'
-        msg += f'The correct answer was: {self.correct}\n'
+        msg = f'The correct answer was: {self.correct}\n'
         msg += 'Score:\n'
         msg += '```\n'
         for person, score in self.score.items():
@@ -366,8 +369,6 @@ class Trivia(commands.Cog):
             await ctx.send('Time\'s up!')
             await self._show_results_for_question(ctx)
             await self._advance_question(ctx)
-        else:
-            await ctx.send(f'Timer up for {question_no}, but everyone guessed, doing nothing')
 
     async def _parse_questions(self, ctx, data) -> Tuple[Optional[dict], bool]:
         code = data['response_code']
@@ -407,13 +408,8 @@ class Trivia(commands.Cog):
             'type'       : None,
             'seconds'    : 60
         }
-        category = None
-        amount = 10
-        difficulty = None
-        type = None
         # parse args
         for arg in args:
-            await ctx.send(f'Parsing arg {arg}')
             try:
                 arr = arg.split('=')
                 key = str(arr[0])
