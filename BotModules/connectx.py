@@ -72,11 +72,10 @@ class Connectx(commands.Cog):
 
     def do_game(self, ctx,game, position = -1,emoji = ""):
         if game.lower() == "new":
-         return self.new_game(ctx,game,position,emoji)
-      #  elif game not in self.game_list:
-       #     return f"No such game as {game}, Mi'lord"
+            return self.new_game(ctx,game,position,emoji)
+        elif game not in self.game_list:
+            return f"No such game as {game}, Mi'lord"
         else:
-            self.new_game(ctx,game,position,emoji)
             return self.play_game(ctx,game,position,emoji)
 if __name__ == "__main__":
     from configparser import ConfigParser
