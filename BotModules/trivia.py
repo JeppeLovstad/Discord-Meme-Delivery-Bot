@@ -274,7 +274,7 @@ class Trivia(commands.Cog):
             self._reset()
             return
         self.has_guessed = {member : False for member in self.lobby}
-        self.guesses = {member.nick : -1 for member in self.lobby}
+        self.guesses = {member : -1 for member in self.lobby}
         await self._print_question(ctx)
 
     def _reset(self):
