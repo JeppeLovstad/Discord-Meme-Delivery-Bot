@@ -4,6 +4,7 @@ from discord.ext import commands
 import requests
 import json
 from random import shuffle
+import traceback
 
 #####################
 #       UTILS       #
