@@ -28,6 +28,15 @@ class Admin(commands.Cog):
         await ctx.send(git_output)
         
     @commands.command(hidden=True)
+    async def restart(self, ctx):
+        if not self.is_trusted_user(ctx.author.id):
+            await ctx.send('User not verified')
+            return
+        
+        run(["sudo", "systemctl", "restart", "discordbot.service"])
+        await ctx.send('Service Restarted')
+
+    @commands.command(hidden=True)
     async def pull(self, ctx):
         if not self.is_trusted_user(ctx.author.id):
             await ctx.send('User not verified')
@@ -43,7 +52,6 @@ class Admin(commands.Cog):
         else:
             run(["sudo", "systemctl", "restart", "discordbot.service"])
             await ctx.send('Service Restarted')
-
     @commands.command(hidden=True)
     @commands.is_owner()
     async def load(self,ctx, *, module : str):
