@@ -36,6 +36,8 @@ class Trivia(commands.Cog):
         self.categories: dict = self._get_categories()
         # game variables
         self.is_playing = False
+        self.is_lobby = False
+        self.lobby = []
         self.questions: Optional[dict] = None
         self.question_counter = 0
         self.total_questions = 0
@@ -138,18 +140,83 @@ class Trivia(commands.Cog):
         if not valid:
             return
         
-        # start new game
+        # start lobby
+        await self._start_lobby(ctx, args)
+
+        # setup some game variables
         self.questions = questions
+        self.questions_finished = {id : False for id in range(1, self.total_questions + 1)}
         self.question_counter = 1
         self.total_questions = params['amount']
         self.seconds = args['seconds']
         self.is_playing = True
-        self.score = {member.nick : 0 for member in ctx.guild.members if not member.bot}
-        self.has_guessed = {member.nick : False for member in ctx.guild.members if not member.bot}
-        self.guesses = {member.nick : -1 for member in ctx.guild.members if not member.bot}
-        self.questions_finished = { id : False for id in range(1, self.total_questions + 1)}
 
+
+    @commands.command(name='start')
+    async def start(self, ctx):
+        if len(self.lobby) == 0:
+            await ctx.send('There are no people in the lobby')
+            return
+        await self._start_game(ctx)
+
+    async def _start_game(self, ctx):
+        # start new game
+        self.score = {member : 0 for member in self.lobby}
+        self.has_guessed = {member : False for member in self.lobby}
+        self.guesses = {member : -1 for member in self.lobby}
         await self._print_question(ctx)
+
+    @commands.command(name='leave')
+    async def leave_lobby(self, ctx):
+        person = ctx.author.nick
+        if person not in self.lobby:
+            await ctx.send('You are not in the lobby you buffoon')
+            return
+        self.lobby.remove(person)
+        await ctx.send(f'{person} left the lobby!')
+        await self._print_lobby_members(ctx)
+
+    @commands.command(name='join')
+    async def join_lobby(self, ctx):
+        person = ctx.author.nick
+        if person in self.lobby:
+            await ctx.send('You are already in the lobby you buffoon')
+            return
+        self.lobby.append(person)
+        await ctx.send(f'{person} joined the lobby!')
+        await self._print_lobby_members(ctx)
+
+    async def _start_lobby(self, ctx, args):
+        await self._print_lobby_message(ctx, args)
+        self.is_lobby = True
+
+    async def _print_lobby_members(self, ctx):
+        if len(self.lobby) == 0:
+            await ctx.send(f'Lobby is empty.')
+            return
+        msg  = 'Lobby:\n'
+        msg += '```\n'
+        for person in self.lobby:
+            msg += f'{person}\n'
+        msg += '```'
+        await ctx.send(msg)
+
+    async def _print_lobby_message(self, ctx, args):
+        arg_formatter = {
+            'category'      : 'Category',
+            'amount'        : '# of questions',
+            'difficulty'    : 'Difficulty',
+            'type'          : 'Type',
+            'seconds'       : 'Time (sec)'
+        }
+        msg  = f'Lobby started (type \'!join\' to join the lobby):\n'
+        msg += '```\n'
+        for key, val in args.items():
+            val = 'Any' if val is None else val
+            msg += f'{arg_formatter[key]}: {val}\n'
+        msg += '```'
+        await ctx.send(msg)
+
 
     @commands.command(name='guess')
     async def guess(self, ctx, guess):
@@ -206,8 +273,8 @@ class Trivia(commands.Cog):
             await self._print_results(ctx)
             self._reset()
             return
-        self.has_guessed = {member.nick : False for member in ctx.guild.members if not member.bot}
-        self.guesses = {member.nick : -1 for member in ctx.guild.members if not member.bot}
+        self.has_guessed = {member : False for member in self.lobby}
+        self.guesses = {member.nick : -1 for member in self.lobby}
         await self._print_question(ctx)
 
     def _reset(self):
@@ -223,6 +290,8 @@ class Trivia(commands.Cog):
         self.guesses = {}
         self.seconds = -1
         self.questions_finished = {}
+        self.is_lobby = False
+        self.lobby = []
 
     def _get_winners(self):
         winners = []
