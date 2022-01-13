@@ -1,273 +1,378 @@
+from socket import MsgFlag
 from typing import Optional, Tuple
 from discord.ext import commands
-import random
-
+import requests
+import json
+from random import shuffle
+import traceback
 
 #####################
 #       UTILS       #
 #####################
-def try_parse_int(x):
+def try_parse_int(x) -> Tuple[Optional[int], bool]:
     try:
         x = int(x)
         return x, True
     except:
         return None, False
 
-class TicTacToe(commands.Cog):
+def try_parse_string(x) -> Tuple[Optional[str], bool]:
+    try:
+        x = str(x)
+        return x, True
+    except:
+        return None, False
+
+class Trivia(commands.Cog):
     def __init__(self, config, bot: commands.Bot):
         self.config = config
         self.bot = bot
-        self.games = {}
+        # api stuff
+        self.url: str = 'https://opentdb.com/'
+        self.session_token: Optional[str] = None
+        self._generate_session_token()
+        # categories
+        self.categories: dict = self._get_categories()
+        # game variables
+        self.is_playing = False
+        self.questions: Optional[dict] = None
+        self.question_counter = 0
+        self.total_questions = 0
+        self.score = {}
+        self.has_guessed = {}
+        self.options = {}
+        self.correct_answer = ''
+        self.question = ''
+        self.guesses = {}
 
-
-    @commands.command(name='ttt-delete')
-    async def delete_game_short(self, ctx, id):
-        await self.delete_game(ctx, id)
-
-    @commands.command(name='tictactoe-delete')
-    async def delete_game(self, ctx, id):
-        if self.games.get(id) == None:
-            await ctx.send(f'No game with ID {id} found.')
-        else:
-            self.games[id] = None
-            await ctx.send(f'Game with ID {id} deleted.')
-
-    @commands.command(name='ttt-games')
-    async def get_games_short(self, ctx):
-        await self.get_games(ctx)
-
-    @commands.command(name='tictactoe-games')
-    async def get_games(self, ctx):
-        ctr = 0
-        for id, game in self.games.items():
-            if game is not None:
-                await ctx.send(f'ID: {id}')
-                state = await self._print_board(game)
-                await ctx.send(state)
-                ctr += 1
-        if ctr == 0:
-            await ctx.send('There are no active games.')
-
-    @commands.command(name='ttt-list')
-    async def list_members_short(self, ctx):
-        await self.list_members(ctx)
-
-    @commands.command(name='tictactoe-list')
-    async def list_members(self, ctx):
-        id = 0
-        await ctx.send(f'Members (Use id or nickname to start a new game with a player):')
-        members = [member.nick for member in ctx.guild.members if not member.bot]
-        for member in members:
-            await ctx.send(f'{id}: {member}')
-            id += 1
-
-    @commands.command(name='ttt-new')
-    async def new_game_short(self, ctx, id, opponent):
-        await self.new_game(ctx, id, opponent)
-
-    @commands.command(name='tictactoe-new')
-    async def new_game(self, ctx, id, opponent):
-        # check if id is in use
-        if self.games.get(id) != None:
-            await ctx.send(f'ID {id} is already in use.')
+    def _generate_session_token(self):
+        response = requests.get(
+            self.url + 'api_token.php',
+            params={
+                'command' : 'request'
+            }
+        )
+        if response.status_code != 200:
+            print(f'Call to generate session token at {response.url} returned status code {response.status_code}')
+            self.session_token = None
             return
-        
-        # validate opponent
-        opponent, valid = await self._validate_opponent(ctx, opponent)
+        data = json.loads(response.content)
+        if data['response_code'] != 0:
+            print(f'Error generating token: {data["response_code"]}')
+            self.session_token = None
+            return None
+        token = data['token']
+        self.session_token = token
+    
+    def _reset_session_token(self):
+        if self.session_token is None:
+            self.session_token = self._generate_session_token()
+            return
+        response = requests.get(
+            self.url + 'api_token.php',
+            params={
+                'command' : 'reset',
+                'token' : self.session_token
+            }
+        )
+        if response.status_code != 200:
+            print(f'Call to reset session token at {response.url} returned status code {response.status_code}')
+            return
+        data = json.loads(response.content)
+        if data['response_code'] != 0:
+            print(f'Error generating token: {data["response_code"]}')
+            return
+        token = data['token']
+        self.session_token = token
+
+    def _get_categories(self) -> dict:
+        response = requests.get(
+            self.url + 'api_category.php'
+        )
+        if response.status_code != 200:
+            print(f'Call to get categories at {response.url} returned status code {response.status_code}')
+            return {}
+        data = json.loads(response.content)
+        categories = {item['id'] : item['name'] for item in data['trivia_categories']}
+        return categories
+
+    @commands.command(name='trivia-categories')
+    async def get_categories(self, ctx):
+        if self.categories == {}:
+            await ctx.send('No categories found.')
+            return
+        await ctx.send('Categories:')
+        categories = '```\n'
+        for id, category in self.categories.items():
+            categories += f'{id}: {category}\n'
+        categories += '```'
+        await ctx.send(categories)
+    
+    @commands.command(name='trivia-new')
+    async def new_game(self, ctx, *args):
+        # check if an active game is already running
+        if self.is_playing:
+            await ctx.send('A game is already running')
+            return
+        # parse args
+        args, valid = await self._parse_args(ctx, args)
         if not valid:
             return
         
-        # create new game
-        game = await self._create_game(ctx, id, opponent)
-        self.games[id] = game
-        
-        # print new game message
-        await self._new_game_message(ctx, game)
+        # create params for request
+        params = self._create_params(args)
 
-    @commands.command(name='ttt-move')
-    async def move_short(self, ctx, id, move):
-        await self.move(ctx, id, move)
-
-    @commands.command(name='tictactoe-move')
-    async def move(self, ctx, id, move):
-        # check if id is valid
-        game = self.games.get(id)
-        if game == None:
-            await ctx.send(f'No game found with ID {id}')
+        # get questions
+        response = requests.get(
+            self.url + 'api.php',
+            params=params
+        )
+        if response.status_code != 200:
+            print(f'Call to get questions at {response.url} returned status code {response.status_code}')
             return
-
-        # check if move is valid
-        x, y, valid = await self._validate_move(ctx, move, game)
+        data = json.loads(response.content)
+        questions, valid = await self._parse_questions(ctx, data)
         if not valid:
             return
+        
+        # start new game
+        self.questions = questions
+        self.question_counter = 1
+        self.total_questions = params['amount']
+        self.is_playing = True
+        self.score = {member.nick : 0 for member in ctx.guild.members if not member.bot}
+        self.has_guessed = {member.nick : False for member in ctx.guild.members if not member.bot}
+        self.guesses = {member.nick : -1 for member in ctx.guild.members if not member.bot}
 
-        # update board
-        val = 1 if game['turn'] else 2
-        game['board'][y][x] = val
+        await self._print_question(ctx)
 
-        # update turn
-        game['turn'] = not game['turn']
-        self.games[id] = game
+    @commands.command(name='guess')
+    async def guess(self, ctx, guess):
+        # check if game is running
+        if not self.is_playing:
+            await ctx.send('No game is currently running.')
+            return
+        guesser = ctx.author.nick
+        if self.has_guessed[guesser]:
+            await ctx.send(f'You already guessed {self.guesses[guesser]}')
+        
+        # check if valid guess
+        guess, valid = await self._is_valid_guess(ctx, guess)
+        if not valid or guess is None:
+            return
+        
+        # note down guess
+        self.has_guessed[guesser] = True
+        self.guesses[guesser] = guess # maybe change this
+        await ctx.send(f'{guesser} has guessed {guess}!')
 
-        # print move message
-        await self._move_message(ctx, game)
+        if self._all_have_guessed():
+            await self._show_results_for_question(ctx)
+            await self._advance_question(ctx)
 
 
-        # check if game is over
-        winner, done = await self._is_game_over(game)
-        if done:
-            if winner is not None:
-                await ctx.send(f'{winner} won the game!')
+    def _update_score(self):
+        for guesser, guess in self.guesses.items():
+            if guess == self.correct:
+                self.score[guesser] += 1
+
+    async def _show_results_for_question(self, ctx):
+        self._update_score()
+        msg  = 'Everyone have guessed!\n'
+        msg += f'The correct answer was: {self.correct}\n'
+        msg += 'Score:\n'
+        msg += '```\n'
+        for person, score in self.score.items():
+            msg += f'{person}: {score}\n'
+        msg += '```'
+        await ctx.send(msg)
+
+
+    async def _advance_question(self, ctx):
+        self.question_counter += 1
+        if self.question_counter > self.total_questions:
+            await self._print_results(ctx)
+            self._reset()
+        self.has_guessed = {member.nick : False for member in ctx.guild.members if not member.bot}
+        self.guesses = {member.nick : -1 for member in ctx.guild.members if not member.bot}
+
+    def _reset(self):
+        self.is_playing = False
+        self.questions = None
+        self.question_counter = 0
+        self.total_questions = 0
+        self.score = {}
+        self.has_guessed = {}
+        self.options = {}
+        self.correct_answer = ''
+        self.question = ''
+        self.guesses = {}
+
+    def _get_winners(self):
+        winners = []
+        to_beat = -1
+        for person, score in self.score.items():
+            if score > to_beat:
+                winners = [person]
+                to_beat = score
+            elif score >= to_beat:
+                winners.append(person)
+        return winners
+
+    async def _print_results(self, ctx):
+        winners = self._get_winners()
+        msg  = 'The quiz is over!\n'
+        msg += 'Final score:'
+        msg += '```\n'
+        for person, score in self.score.items():
+            msg += f'{person} : {score}\n'
+        msg += '```\n'
+        msg += 'The winner(s) were: ' + ', '.join(winners)
+        await ctx.send(msg)
+
+    def _all_have_guessed(self):
+        return all(self.has_guessed.values())
+
+    async def _is_valid_guess(self, ctx, guess):
+        guess, is_int = try_parse_int(guess)
+        if is_int and guess is not None:
+            if guess <= 0 and guess < len(self.options):
+                return guess, True
             else:
-                await ctx.send(f'No one won the game.')
-            self.games[id] = None
-
-    async def _is_game_over(self, game):
-        board = game['board']
-        # check lines
-        for x in range(3):
-            player_one_won_horizontal = True
-            player_one_won_vertical = True
-            player_two_won_horizontal = True
-            player_two_won_vertical = True
-            for y in range(3):
-                if board[x][y] in [0, 2]:
-                    player_one_won_horizontal = False
-                if board[x][y] in [0, 1]:
-                    player_two_won_horizontal = False
-                if board[y][x] in [0, 2]:
-                    player_one_won_vertical = False
-                if board[y][x] in [0, 1]:
-                    player_two_won_vertical = False
-            if player_one_won_horizontal or player_one_won_vertical:
-                return game['player_one'], True
-            if player_two_won_horizontal or player_two_won_vertical:
-                return game['player_two'], True
-        
-        # check diagonal
-        map = {
-            0 : 2,
-            1 : 1,
-            2 : 0
-        }
-        player_one_won_diagonal_one = True
-        player_one_won_diagonal_two = True
-        player_two_won_diagonal_one = True
-        player_two_won_diagonal_two = True
-        for x in range(3):
-            if board[x][x] in [0, 2]:
-                player_one_won_diagonal_one = False
-            if board[map[x]][x] in [0, 2]:
-                player_one_won_diagonal_two = False
-            if board[x][x] in [0, 1]:
-                player_two_won_diagonal_one = False
-            if board[map[x]][x] in [0, 1]:
-                player_two_won_diagonal_two = False
-        if player_one_won_diagonal_one or player_one_won_diagonal_two:
-            return game['player_one'], True
-        if player_two_won_diagonal_one or player_two_won_diagonal_two:
-            return game['player_two'], True
-
-        # check if no one won
-        over = True
-        for x in range(3):
-            for y in range(3):
-                if board[x][y] == 0:
-                    over = False
-        if over:
-            return None, True
+                await ctx.send(f'Invalid guess: {guess}')
+                return None, False
         else:
+            await ctx.send(f'Invalid guess {guess}')
             return None, False
 
-    async def _print_board(self, game):
-        board = game['board']
-        cur_player = game['player_one'] if game['turn'] else game['player_two']
-        print_board = [
-            f'-------------',
-            f'|   |   |   |   x: {game["player_one"]}',
-            f'-------------',
-            f'|   |   |   |   o: {game["player_two"]}',
-            f'-------------',
-            f'|   |   |   |   Turn: {cur_player}',
-            f'-------------',
-        ]
-        for x in range(3):
-            for y in range(3):
-                if board[x][y] == 0:
-                    continue
-                # best code i have ever written
-                piece = 'x' if board[x][y] == 1 else 'o'
-                line = print_board[(x * 2) + 1]
-                line = str(line[0:(y*4)+1]) + ' ' + piece + ' ' + str(line[(y*4)+4:])
-                print_board[(x * 2) + 1] = line
-        return "```\n" + '\n'.join(print_board) + '\n```'
+    def _prepare_question(self):
+        if self.questions is None:
+            return
+        question = self.questions[self.question_counter]
+        self.question = question['question']
+        self.correct = question['correct_answer']
+        options = question['incorrect_answers']
+        options.append(self.correct)
+        shuffle(options)
+        self.options = options
 
-
-    async def _move_message(self, ctx, game):
-        moved_player = game['player_two'] if game['turn'] else game['player_one']
-        msg = f'{moved_player} has made a move!\n'
-        msg += await self._print_board(game)
+    async def _print_question(self, ctx):
+        self._prepare_question()
+        msg  = f'Question {self.question_counter}/{self.total_questions}'
+        msg += '```\n'
+        msg += f'{self.question}\n'
+        for idx, option in enumerate(self.options):
+            msg += f'{idx}: {option}\n'
+        msg += '```'
         await ctx.send(msg)
 
 
-    async def _validate_move(self, ctx, move, game):
-        # check whose turn it is
-        cur_player = game['player_one'] if game['turn'] else game['player_two']
-        if ctx.author.nick != cur_player:
-            await ctx.send(f'It\'s not your turn you bufoon')
-            return None, None, False
-        board = game['board']
-        try:
-            arr = move.split(',')
-            x = int(arr[0])
-            y = int(arr[1])
-            if x not in [0, 1, 2] or y not in [0, 1, 2]:
-                await ctx.send(f'Move out of range: {x},{y}')
-                return None, None, False
-            # check if piece is already placed
-            if board[y][x] != 0:
-                await ctx.send(f'There is already a piece at this position.')
-                return None, None, False
-            return x, y, True
-        except:
-            await ctx.send(f'Invalid move: {move}')
-            return None, None, False
-
-    async def _new_game_message(self, ctx, game):
-        msg  = 'New Tic Tac Toe game started!\n'
-        msg += await self._print_board(game)
-        await ctx.send(msg)
-
-
-    async def _create_game(self, ctx, id, opponent):
-        game = {}
-        game['player_one']  = ctx.author.nick
-        game['player_two']  = opponent
-        game['turn']        = True if random.randint(0,1) == 1 else False # True for player_one, False for player_two
-        game['board']       = [[0 for _ in range(3)] for _ in range(3)]
-        return game
-
-    async def _validate_opponent(self, ctx, opponent) -> Tuple[Optional[str], bool]:
-        members = [member.nick for member in ctx.guild.members if not member.bot]
-        # check if opponent is given by id
-        id, is_id = try_parse_int(opponent)
-        if is_id and id is not None: # id
-            if id >= len(members) or id < 0:
-                await ctx.send(f'No member found with ID {id}')
-                await self.list_members(ctx)
+    async def _parse_questions(self, ctx, data) -> Tuple[Optional[dict], bool]:
+        code = data['response_code']
+        match code:
+            case 1:
+                await ctx.send('Not enough questions available, try lowering the amount.')
                 return None, False
-            opponent = members[id]
-            if opponent == ctx.author.nick:
-                await ctx.send(f'I\'m sorry that you don\'t have any friends :(')
+            case 2:
+                await ctx.send(f'Invalid parameter.')
                 return None, False
-            return members[id], True
-        else: # nickname
-            if opponent not in members:
-                await ctx.send(f'No member found with nickname {opponent}')
-                await self.list_members(ctx)
+            case 3:
+                self._generate_session_token()
+                await ctx.send('Invalid session token, generating new session token. Please try again.')
                 return None, False
-            elif opponent == ctx.author.nick:
-                await ctx.send(f'I\'m sorry that you don\'t have any friends :(')
+            case 4:
+                self._reset_session_token()
+                await ctx.send('All question has been shown for this session, resetting session token. Please try again.')
                 return None, False
+        
+        questions = {idx + 1 : question for idx, question in enumerate(data['results'])}
+        return questions, True
+    def _create_params(self, args):
+        params = {}
+        for key, val in args.items():
+            if val is None:
+                continue
+            params[key] = val
+        return params
+
+    
+    async def _parse_args(self, ctx, args) -> Tuple[Optional[dict], bool]:
+        # default args
+        args = {
+            'category'   : None,
+            'amount'     : 10,
+            'difficulty' : None,
+            'type'       : None
+        }
+        category = None
+        amount = 10
+        difficulty = None
+        type = None
+        # parse args
+        for arg in args:
+            try:
+                arr = arg.split('=')
+                key = str(arr[0])
+                val = arr[1]
+            except:
+                await ctx.send(f'Invalid arg: {arg}')
+                return None, False
+            match key:
+                case 'c' | 'category':
+                    c, valid = self._valid_category(val)
+                    if valid:
+                        args['category'] = c
+                    else:
+                        await ctx.send(f'Invalid category: {val}')
+                        return None, False
+                case 'a' | 'amount':
+                    a, is_int = try_parse_int(val)
+                    if is_int and a is not None:
+                        if a >= 1 and a <= 50:
+                            args['amount'] = a
+                        else:
+                            await ctx.send(f'Amount {a} out of range. Must be between 1 and 50')
+                    else:
+                        await ctx.send(f'Invalid amount: {val}')
+                        return None, False
+                case 'd' | 'difficulty':
+                    d, is_str = try_parse_string(val)
+                    if is_str and d is not None:
+                        d = d.lower()
+                        if d in ['easy', 'medium', 'hard']:
+                            args['difficulty'] = d
+                        else:
+                            await ctx.send(f'Invalid difficulty: {d}')
+                            return None, False
+                    else:
+                        await ctx.send(f'Invalid difficulty: {val}')
+                        return None, False
+                case 't' | 'type':
+                    t, is_str = try_parse_string(val)
+                    if is_str and t is not None:
+                        t = t.lower()
+                        if t in ['boolean', 'multiple']:
+                            args['type'] = t
+                        else:
+                            await ctx.send(f'Invalid type: {t}')
+                            return None, False
+                    else:
+                        await ctx.send(f'Invalid type {val}')
+                        return None, False
+        return args, True
+
+
+    def _valid_category(self, category) -> Tuple[Optional[int], bool]:
+        # check if category is int
+        val, is_int = try_parse_int(category)
+        if is_int: # int
+            if val in self.categories.keys():
+                return val, True
             else:
-                return opponent, True
+                return None, False
+        else:
+            val = str(val)
+            for id, category in self.categories.items():
+                if val.lower() == category.lower():
+                    return id, True
+            return None, False
