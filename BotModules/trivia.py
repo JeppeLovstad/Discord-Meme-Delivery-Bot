@@ -5,6 +5,7 @@ import requests
 import json
 from random import shuffle
 import html
+import asyncio
 
 #####################
 #       UTILS       #
@@ -38,6 +39,7 @@ class Trivia(commands.Cog):
         self.questions: Optional[dict] = None
         self.question_counter = 0
         self.total_questions = 0
+        self.seconds = -1
         self.score = {}
         self.has_guessed = {}
         self.options = {}
@@ -116,7 +118,7 @@ class Trivia(commands.Cog):
             return
         # parse args
         args, valid = await self._parse_args(ctx, args)
-        if not valid:
+        if not valid or args is None:
             return
         
         # create params for request
@@ -139,6 +141,7 @@ class Trivia(commands.Cog):
         self.questions = questions
         self.question_counter = 1
         self.total_questions = params['amount']
+        self.seconds = args['seconds']
         self.is_playing = True
         self.score = {member.nick : 0 for member in ctx.guild.members if not member.bot}
         self.has_guessed = {member.nick : False for member in ctx.guild.members if not member.bot}
@@ -177,6 +180,8 @@ class Trivia(commands.Cog):
 
     def _update_score(self):
         for guesser, guess in self.guesses.items():
+            if not self.has_guessed[guesser]:
+                continue
             if self.options[guess] == self.correct:
                 self.score[guesser] += 1
 
@@ -212,6 +217,7 @@ class Trivia(commands.Cog):
         self.correct_answer = ''
         self.question = ''
         self.guesses = {}
+        self.seconds = -1
 
     def _get_winners(self):
         winners = []
@@ -270,7 +276,15 @@ class Trivia(commands.Cog):
             msg += f'{idx}: {html.unescape(option)}\n'
         msg += '```'
         await ctx.send(msg)
+        await self._timer(ctx)
 
+
+    async def _timer(self, ctx):
+        await asyncio.sleep(self.seconds)
+        if not self._all_have_guessed():
+            await ctx.send('Time\'s up!')
+            await self._show_results_for_question(ctx)
+            await self._advance_question(ctx)
 
     async def _parse_questions(self, ctx, data) -> Tuple[Optional[dict], bool]:
         code = data['response_code']
@@ -307,7 +321,8 @@ class Trivia(commands.Cog):
             'category'   : None,
             'amount'     : 10,
             'difficulty' : None,
-            'type'       : None
+            'type'       : None,
+            'seconds'      : 30
         }
         category = None
         amount = 10
@@ -365,6 +380,20 @@ class Trivia(commands.Cog):
                     else:
                         await ctx.send(f'Invalid type {val}')
                         return None, False
+                case 's' | 'seconds':
+                    s, is_int = try_parse_int(val)
+                    if is_int and s is not None:
+                        if s > 0:
+                            parsed_args['seconds'] = s
+                        else:
+                            await ctx.send(f'Seconds must be positive: {s}')
+                            return None, False
+                    else:
+                        await ctx.send(f'Invalid seconds: {val}')
+                        return None, False
+                case _:
+                    await ctx.send(f'Invalid key: {key}')
+                    return None, False
         return parsed_args, True
 
 
