@@ -152,6 +152,11 @@ class Trivia(commands.Cog):
         self.is_playing = True
 
 
+    @commands.command(name='cancel')
+    async def cancel_lobby(self, ctx):
+        await ctx.send('Lobby cancelled.')
+        self._reset()
+
     @commands.command(name='start')
     async def start(self, ctx):
         if len(self.lobby) == 0:
