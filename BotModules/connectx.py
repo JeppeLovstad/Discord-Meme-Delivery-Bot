@@ -58,7 +58,7 @@ class Connectx(commands.Cog):
         t = ""
         current_game = self.game_list[int(game)]
         grid_size = current_game["grid_size"]
-        emoji = " "
+        emoji = "`"
         for y in range(grid_size):
             t+=("----"*grid_size)
             t+=("-\n")
@@ -66,13 +66,13 @@ class Connectx(commands.Cog):
                 emoji = current_game["board"][x][y]        
                 t+=(f"| {emoji} ")
             t+=("|\n")
-        t+=("----"*grid_size+"-")
+        t+=("----"*grid_size+"-")+'\''
         return t
     def play_game(self, ctx,game, position = -1,emoji = ""):
         return self.print_board(ctx,game)
 
     def do_game(self, ctx,game, position = -1,emoji = ""):
-     #   self.new_game(ctx,game,position,emoji)
+      #  self.new_game(ctx,game,position,emoji)
         try:
             if game.lower() == "new":
                 return self.new_game(ctx,game,position,emoji)
