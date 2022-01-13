@@ -265,7 +265,7 @@ class Trivia(commands.Cog):
         self._prepare_question()
         msg  = f'Question {self.question_counter}/{self.total_questions}'
         msg += '```\n'
-        msg += f'{self.question}\n'
+        msg += f'{html.unescape(self.question)}\n'
         for idx, option in enumerate(self.options):
             msg += f'{idx}: {html.unescape(option)}\n'
         msg += '```'
