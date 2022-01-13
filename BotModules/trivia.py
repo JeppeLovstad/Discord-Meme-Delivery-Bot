@@ -280,6 +280,8 @@ class Trivia(commands.Cog):
 
 
     async def _timer(self, ctx):
+        if self.question_counter > self.total_questions:
+            return
         await asyncio.sleep(self.seconds)
         if not self._all_have_guessed():
             await ctx.send('Time\'s up!')
