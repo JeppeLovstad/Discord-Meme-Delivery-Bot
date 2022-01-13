@@ -205,6 +205,7 @@ class Trivia(commands.Cog):
         if self.question_counter > self.total_questions:
             await self._print_results(ctx)
             self._reset()
+            return
         self.has_guessed = {member.nick : False for member in ctx.guild.members if not member.bot}
         self.guesses = {member.nick : -1 for member in ctx.guild.members if not member.bot}
         await self._print_question(ctx)
@@ -240,7 +241,7 @@ class Trivia(commands.Cog):
         msg += 'Final score:'
         msg += '```\n'
         for person, score in self.score.items():
-            msg += f'{person} : {score}\n'
+            msg += f'{person}: {score}\n'
         msg += '```\n'
         msg += 'The winner(s) were: ' + ', '.join(winners)
         await ctx.send(msg)
@@ -291,6 +292,8 @@ class Trivia(commands.Cog):
             await ctx.send('Time\'s up!')
             await self._show_results_for_question(ctx)
             await self._advance_question(ctx)
+        else:
+            await ctx.send(f'Timer up for {question_no}, but everyone guessed, doing nothing')
 
     async def _parse_questions(self, ctx, data) -> Tuple[Optional[dict], bool]:
         code = data['response_code']
