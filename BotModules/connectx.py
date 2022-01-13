@@ -72,15 +72,19 @@ class Connectx(commands.Cog):
         return self.print_board(ctx,game)
 
     def do_game(self, ctx,game, position = -1,emoji = ""):
-        if game.lower() == "new":
-            return self.new_game(ctx,game,position,emoji)
-        elif game.lower() == "list":
-            response ="Game ID List:\n "+",".join([str(t) for t in self.game_list])
-            return response
-        elif game not in self.game_list:
-            return f"No such game as {game}, Mi'lord"
-        else:
-            return self.play_game(ctx,game,position,emoji)
+     #   self.new_game(ctx,game,position,emoji)
+        try:
+            if game.lower() == "new":
+                return self.new_game(ctx,game,position,emoji)
+            elif game.lower() == "list":
+                response ="Game ID List:\n "+",".join([str(t) for t in self.game_list])
+                return response
+            elif int(game) not in self.game_list:
+                return f"No such game as {game}, Mi'lord.\n Please make a new or pick from list: "+",".join([str(t) for t in self.game_list])
+            else:
+                return self.play_game(ctx,game,position,emoji)
+        except Exception as e:
+            return e.message
 if __name__ == "__main__":
     from configparser import ConfigParser
 
@@ -89,4 +93,4 @@ if __name__ == "__main__":
     bot = commands.Bot(command_prefix="!")
     m = Connectx(bot=bot, config=config["CONNECTX"])
     #m = Connectx(0,0)
-    print(m.do_game(0,"new",10))
+    print(m.do_game(0,"1",10))
