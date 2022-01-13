@@ -298,7 +298,7 @@ class TicTacToe(commands.Cog):
     
     async def _parse_args(self, ctx, args) -> Tuple[Optional[dict], bool]:
         # default args
-        args = {
+        parsed_args = {
             'category'   : None,
             'amount'     : 10,
             'difficulty' : None,
@@ -322,7 +322,7 @@ class TicTacToe(commands.Cog):
                 case 'c' | 'category':
                     c, valid = self._valid_category(val)
                     if valid:
-                        args['category'] = c
+                        parsed_args['category'] = c
                     else:
                         await ctx.send(f'Invalid category: {val}')
                         return None, False
@@ -330,7 +330,7 @@ class TicTacToe(commands.Cog):
                     a, is_int = try_parse_int(val)
                     if is_int and a is not None:
                         if a >= 1 and a <= 50:
-                            args['amount'] = a
+                            parsed_args['amount'] = a
                         else:
                             await ctx.send(f'Amount {a} out of range. Must be between 1 and 50')
                     else:
@@ -341,7 +341,7 @@ class TicTacToe(commands.Cog):
                     if is_str and d is not None:
                         d = d.lower()
                         if d in ['easy', 'medium', 'hard']:
-                            args['difficulty'] = d
+                            parsed_args['difficulty'] = d
                         else:
                             await ctx.send(f'Invalid difficulty: {d}')
                             return None, False
@@ -353,14 +353,14 @@ class TicTacToe(commands.Cog):
                     if is_str and t is not None:
                         t = t.lower()
                         if t in ['boolean', 'multiple']:
-                            args['type'] = t
+                            parsed_args['type'] = t
                         else:
                             await ctx.send(f'Invalid type: {t}')
                             return None, False
                     else:
                         await ctx.send(f'Invalid type {val}')
                         return None, False
-        return args, True
+        return parsed_args, True
 
 
     def _valid_category(self, category) -> Tuple[Optional[int], bool]:
