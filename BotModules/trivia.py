@@ -46,6 +46,7 @@ class Trivia(commands.Cog):
         self.correct_answer = ''
         self.question = ''
         self.guesses = {}
+        self.questions_finished = {}
 
     def _generate_session_token(self):
         response = requests.get(
@@ -146,6 +147,7 @@ class Trivia(commands.Cog):
         self.score = {member.nick : 0 for member in ctx.guild.members if not member.bot}
         self.has_guessed = {member.nick : False for member in ctx.guild.members if not member.bot}
         self.guesses = {member.nick : -1 for member in ctx.guild.members if not member.bot}
+        self.questions_finished = { id : False for id in range(1, self.total_questions + 1)}
 
         await self._print_question(ctx)
 
@@ -198,6 +200,7 @@ class Trivia(commands.Cog):
 
 
     async def _advance_question(self, ctx):
+        self.questions_finished[self.question_counter] = True
         self.question_counter += 1
         if self.question_counter > self.total_questions:
             await self._print_results(ctx)
@@ -218,6 +221,7 @@ class Trivia(commands.Cog):
         self.question = ''
         self.guesses = {}
         self.seconds = -1
+        self.questions_finished = {}
 
     def _get_winners(self):
         winners = []
@@ -276,14 +280,14 @@ class Trivia(commands.Cog):
             msg += f'{idx}: {html.unescape(option)}\n'
         msg += '```'
         await ctx.send(msg)
-        await self._timer(ctx)
+        await self._timer(ctx, self.question_counter)
 
 
-    async def _timer(self, ctx):
-        if self.question_counter > self.total_questions:
+    async def _timer(self, ctx, question_no):
+        if not self.is_playing:
             return
         await asyncio.sleep(self.seconds)
-        if not self._all_have_guessed():
+        if not self.questions_finished[question_no]:
             await ctx.send('Time\'s up!')
             await self._show_results_for_question(ctx)
             await self._advance_question(ctx)
@@ -324,7 +328,7 @@ class Trivia(commands.Cog):
             'amount'     : 10,
             'difficulty' : None,
             'type'       : None,
-            'seconds'      : 30
+            'seconds'    : 60
         }
         category = None
         amount = 10
