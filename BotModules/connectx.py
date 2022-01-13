@@ -52,6 +52,7 @@ class Connectx(commands.Cog):
             #add player to game
             game["players"][player["name"]] = player
             game["board"] = [["0" for _ in range(position)] for _ in range(position)]
+            return f"Game made with ID: {game['ID']}  size: {game['grid_size']}\n"+self.print_board(ctx,game["ID"])
        # self.print_board(ctx,game)
     def print_board(self,ctx,game):
         t = ""
@@ -73,6 +74,9 @@ class Connectx(commands.Cog):
     def do_game(self, ctx,game, position = -1,emoji = ""):
         if game.lower() == "new":
             return self.new_game(ctx,game,position,emoji)
+        elif game.lower() == "list":
+            response ="Game ID List:\n "+",".join([str(t) for t in self.game_list])
+            return response
         elif game not in self.game_list:
             return f"No such game as {game}, Mi'lord"
         else:
@@ -85,4 +89,4 @@ if __name__ == "__main__":
     bot = commands.Bot(command_prefix="!")
     m = Connectx(bot=bot, config=config["CONNECTX"])
     #m = Connectx(0,0)
-    print(m.do_game(0,"1",5))
+    print(m.do_game(0,"new",10))
