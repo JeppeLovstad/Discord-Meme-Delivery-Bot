@@ -23,7 +23,7 @@ def try_parse_string(x) -> Tuple[Optional[str], bool]:
     except:
         return None, False
 
-class Trivia(commands.Cog):
+class TicTacToe(commands.Cog):
     def __init__(self, config, bot: commands.Bot):
         self.config = config
         self.bot = bot
