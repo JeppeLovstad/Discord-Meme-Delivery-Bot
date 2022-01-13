@@ -4,7 +4,7 @@ from discord.ext import commands
 import requests
 import json
 from random import shuffle
-import traceback
+import html
 
 #####################
 #       UTILS       #
@@ -148,13 +148,16 @@ class Trivia(commands.Cog):
 
     @commands.command(name='guess')
     async def guess(self, ctx, guess):
+        # delete message so other people cant see what was guessed
+        await ctx.message.delete()
+
         # check if game is running
         if not self.is_playing:
             await ctx.send('No game is currently running.')
             return
         guesser = ctx.author.nick
         if self.has_guessed[guesser]:
-            await ctx.send(f'You already guessed {self.guesses[guesser]}')
+            await ctx.send(f'You already guessed.')
             return
         
         # check if valid guess
@@ -165,7 +168,7 @@ class Trivia(commands.Cog):
         # note down guess
         self.has_guessed[guesser] = True
         self.guesses[guesser] = guess # maybe change this
-        await ctx.send(f'{guesser} has guessed {guess}!')
+        await ctx.send(f'{guesser} has guessed!')
 
         if self._all_have_guessed():
             await self._show_results_for_question(ctx)
@@ -264,7 +267,7 @@ class Trivia(commands.Cog):
         msg += '```\n'
         msg += f'{self.question}\n'
         for idx, option in enumerate(self.options):
-            msg += f'{idx}: {option}\n'
+            msg += f'{idx}: {html.unescape(option)}\n'
         msg += '```'
         await ctx.send(msg)
 
@@ -284,7 +287,7 @@ class Trivia(commands.Cog):
                 return None, False
             case 4:
                 self._reset_session_token()
-                await ctx.send('All question has been shown for this session, resetting session token. Please try again.')
+                await ctx.send('All questions have been shown for this session, resetting session token. Please try again.')
                 return None, False
         
         questions = {idx + 1 : question for idx, question in enumerate(data['results'])}
