@@ -59,13 +59,13 @@ class Connectx(commands.Cog):
         grid_size = current_game["grid_size"]
         emoji = " "
         for y in range(grid_size):
-            print("----"*grid_size,end="")
-            print("-")
+            t+=("----"*grid_size)
+            t+=("-\n")
             for x in range(grid_size):
                 emoji = current_game["board"][x][y]        
-                print(f"| {emoji} ",end="")
-            print("|")
-        print("----"*grid_size+"-")
+                t+=(f"| {emoji} ")
+            t+=("|\n")
+        t+=("----"*grid_size+"-")
         return t
     def play_game(self, ctx,game, position = -1,emoji = ""):
         return self.print_board(ctx,game)
