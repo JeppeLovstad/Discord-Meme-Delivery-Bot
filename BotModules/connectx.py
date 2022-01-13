@@ -84,6 +84,6 @@ if __name__ == "__main__":
     config = ConfigParser()
     config.read("config.ini")
     bot = commands.Bot(command_prefix="!")
-    m = Connectx(bot=bot, config=config["GREENTEXT"])
+    m = Connectx(bot=bot, config=config["CONNECTX"])
     #m = Connectx(0,0)
     print(m.do_game(0,"1",5))
