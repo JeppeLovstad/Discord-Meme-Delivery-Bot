@@ -155,6 +155,7 @@ class Trivia(commands.Cog):
         guesser = ctx.author.nick
         if self.has_guessed[guesser]:
             await ctx.send(f'You already guessed {self.guesses[guesser]}')
+            return
         
         # check if valid guess
         guess, valid = await self._is_valid_guess(ctx, guess)
@@ -173,7 +174,7 @@ class Trivia(commands.Cog):
 
     def _update_score(self):
         for guesser, guess in self.guesses.items():
-            if guess == self.correct:
+            if self.options[guess] == self.correct:
                 self.score[guesser] += 1
 
     async def _show_results_for_question(self, ctx):
