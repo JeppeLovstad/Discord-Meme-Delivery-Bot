@@ -168,10 +168,9 @@ class Trivia(commands.Cog):
     @commands.Cog.listener(name='on_message')
     async def guess_listener(self, guess):
         ctx = await self.bot.get_context(guess)
-        await ctx.send("I AM LISTENIIIIIIIIIIIIIING")
         if not self.is_playing:
             return
-        person = guess.author.nick
+        person = ctx.author.nick
         if person not in self.lobby:
             return
         guess, is_int = try_parse_int(guess)
