@@ -16,7 +16,7 @@ class Admin(commands.Cog):
         self.trusted_users = []
         
     
-    async def check_cog(self, ctx):
+    async def cog_check(self, ctx):
         user_authorized = ctx.author.id in self.trusted_users or ctx.author.id == self.bot.owner_id
         if not user_authorized:
             await ctx.send('User not verified')
