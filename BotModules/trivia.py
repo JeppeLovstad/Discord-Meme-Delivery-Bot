@@ -103,9 +103,9 @@ class Trivia(commands.Cog):
 
         # setup some game variables
         self.questions = questions
+        self.total_questions = params['amount']
         self.questions_finished = {id : False for id in range(1, self.total_questions + 1)}
         self.question_counter = 1
-        self.total_questions = params['amount']
         self.seconds = args['seconds']
         self.is_lobby = True
 
@@ -124,8 +124,14 @@ class Trivia(commands.Cog):
     ###
     @commands.command(name='trivia-cancel', aliases=['t-cancel'])
     async def cancel_lobby(self, ctx):
-        await ctx.send('Lobby cancelled.')
-        self._reset()
+        if self.is_lobby:
+            await ctx.send('Lobby cancelled.')
+            self._reset()
+            return
+        if self.is_playing:
+            await ctx.send('Game cancelled.')
+            self._reset()
+            return
 
     ###
     ### join lobby
@@ -161,6 +167,8 @@ class Trivia(commands.Cog):
     ###
     @commands.Cog.listener(name='on_message')
     async def guess_listener(self, guess):
+        ctx = await self.bot.get_context(guess)
+        await ctx.send("I AM LISTENIIIIIIIIIIIIIING")
         if not self.is_playing:
             return
         person = guess.author.nick
@@ -169,10 +177,9 @@ class Trivia(commands.Cog):
         guess, is_int = try_parse_int(guess)
         if not is_int or guess is None:
             return
-        ctx = await self.bot.get_context(guess)
         await self.guess(ctx, guess)
 
-    @commands.command(name='guess')
+    @commands.command(name='guess', aliases=['g'])
     async def guess(self, ctx, guess):
         # delete message so other people cant see what was guessed
         await ctx.message.delete()
