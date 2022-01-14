@@ -77,6 +77,7 @@ class Trivia(commands.Cog):
     ###
     @commands.command(name='t-new')
     async def new_game_short(self, ctx, *args):
+        await ctx.send(args)
         await self.new_game(ctx, args)
 
     @commands.command(name='trivia-new')
@@ -115,7 +116,7 @@ class Trivia(commands.Cog):
         self.question_counter = 1
         self.total_questions = params['amount']
         self.seconds = args['seconds']
-        self.is_playing = True
+        self.is_lobby = True
 
     ###
     ### start game
@@ -289,6 +290,7 @@ class Trivia(commands.Cog):
     ##################################
     async def _start_game(self, ctx):
         # start new game
+        self.is_playing = True
         self.score = {member : 0 for member in self.lobby}
         self.has_guessed = {member : False for member in self.lobby}
         self.guesses = {member : -1 for member in self.lobby}
