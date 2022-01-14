@@ -1,4 +1,3 @@
-from socket import MsgFlag
 from typing import Optional, Tuple
 from discord.ext import commands
 import requests
@@ -171,7 +170,7 @@ class Trivia(commands.Cog):
         self.guesses = {member : -1 for member in self.lobby}
         await self._print_question(ctx)
 
-    @commands.Cog.listener()
+    @commands.Cog.listener(name='on_message')
     async def guess_listener(self, guess):
         if not self.is_playing:
             return
@@ -361,7 +360,7 @@ class Trivia(commands.Cog):
 
     async def _print_question(self, ctx):
         self._prepare_question()
-        msg  = f'Question {self.question_counter}/{self.total_questions}'
+        msg  = f'Question {self.question_counter}/{self.total_questions}\n'
         msg += '```\n'
         msg += f'{html.unescape(self.question)}\n'
         for idx, option in enumerate(self.options):
