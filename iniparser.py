@@ -40,7 +40,7 @@ class IniParser():
         self.config_last_change_time = path.getmtime(_filename)
         
         
-    def set_section_value(self, _section = "", _item = "", _value = ""):
+    def set_section_value(self, _section = "", _item = "", _value = "") -> tuple[bool, str]:
         self.__updateConfig()
         if not _section or not _item or not self.config_file_name:
             return False, "Missing section or item parameter"
@@ -107,13 +107,13 @@ def getConfigLoader() -> IniParser:
         _loaded_config = IniParser()
     return _loaded_config
 
-def getConfigAsDict(section:str = ""):
+def getConfigAsDict(section:str = "") -> dict:
     return getConfigLoader().getConfigAsDict(section)
 
 def getConfig():
     return getConfigLoader().getConfig()
 
-def setConfigValue(section = "", item = "", value = ""):
+def setConfigValue(section = "", item = "", value = "") -> tuple[bool, str]:
     return getConfigLoader().set_section_value(_section = section, _item = item, _value = value)
 
 if __name__ == "__main__":
