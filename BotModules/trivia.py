@@ -171,15 +171,13 @@ class Trivia(commands.Cog):
         self.guesses = {member : -1 for member in self.lobby}
         await self._print_question(ctx)
 
-<<<<<<< HEAD
-
     @commands.Cog.listener()
     async def guess_listener(self, guess):
         if not self.is_playing:
             return
         ctx = await self.bot.get_context(guess)
         await self.guess(ctx, guess)
-=======
+
     @commands.command(name='leave')
     async def leave_lobby(self, ctx):
         person = ctx.author.nick
@@ -233,7 +231,6 @@ class Trivia(commands.Cog):
             msg += f'{arg_formatter[key]}: {val}\n'
         msg += '```'
         await ctx.send(msg)
->>>>>>> f347e30f23602178f95442fdf87994b8a8f7d68a
 
 
     @commands.command(name='guess')
