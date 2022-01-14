@@ -6,7 +6,7 @@ _loaded_config = None
 
 class IniParser():
 
-    config:configparser.ConfigParser = configparser.ConfigParser()
+    config:configparser.ConfigParser = configparser.ConfigParser(comment_prefixes='/', allow_no_value=True)
     config_file_name = ""
     config_last_change_time = 0
 
@@ -23,7 +23,7 @@ class IniParser():
         return self.config
 
     def __updateConfig(self) -> None:
-        _config = configparser.ConfigParser()
+        _config = configparser.ConfigParser(comment_prefixes='/', allow_no_value=True)
         _filename = self.config_file_name
         
         if len(_config) == 1 or not path.isfile(_filename): #File has not yet been loaded or has been deleted
@@ -40,8 +40,23 @@ class IniParser():
         self.config_last_change_time = path.getmtime(_filename)
         
         
+    def set_section_value(self, _section = "", _item = "", _value = ""):
+        self.__updateConfig()
+        if not _section or not _item or not self.config_file_name:
+            return False, "Missing section or item parameter"
+        
+        try:
+            if not self.config.has_section(_section):
+                self.config.add_section(_section)
+                
+            self.config.set(section = _section, option = _item, value = _value)
+            self.config.write(open(self.config_file_name, 'w'))
+        except Exception as e:
+            return False, f"Something Went wrong, could not update config: {self.config_file_name}"
+        return True, f"Config updated"
+        
     def __getConfigFromFiles(self):
-        _config = configparser.ConfigParser()
+        _config = configparser.ConfigParser(comment_prefixes='/', allow_no_value=True)
         _filename = ""
         
         (_, _, filenames) = next(walk("."))
@@ -97,3 +112,10 @@ def getConfigAsDict(section:str = ""):
 
 def getConfig():
     return getConfigLoader().getConfig()
+
+def setConfigValue(section = "", item = "", value = ""):
+    return getConfigLoader().set_section_value(_section = section, _item = item, _value = value)
+
+if __name__ == "__main__":
+    print(setConfigValue("BOT_MODULES","test","wfefwe"))
+    
