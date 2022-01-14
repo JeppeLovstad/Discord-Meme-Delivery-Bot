@@ -165,18 +165,18 @@ class Trivia(commands.Cog):
     ###
     ### guess
     ###
-    @commands.Cog.listener(name='on_message')
-    async def guess_listener(self, guess):
-        ctx = await self.bot.get_context(guess)
-        if not self.is_playing:
-            return
-        person = ctx.author.nick
-        if person not in self.lobby:
-            return
-        guess, is_int = try_parse_int(guess)
-        if not is_int or guess is None:
-            return
-        await self.guess(ctx, guess)
+    # @commands.Cog.listener(name='on_message')
+    # async def guess_listener(self, guess):
+    #     ctx = await self.bot.get_context(guess)
+    #     if not self.is_playing:
+    #         return
+    #     person = ctx.
+    #     if person not in self.lobby:
+    #         return
+    #     guess, is_int = try_parse_int(guess)
+    #     if not is_int or guess is None:
+    #         return
+    #     await self.guess(ctx, guess)
 
     @commands.command(name='guess', aliases=['g'])
     async def guess(self, ctx, guess):
