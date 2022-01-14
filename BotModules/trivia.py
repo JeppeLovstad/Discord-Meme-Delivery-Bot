@@ -175,6 +175,9 @@ class Trivia(commands.Cog):
     async def guess_listener(self, guess):
         if not self.is_playing:
             return
+        guess, is_int = try_parse_int(guess)
+        if not is_int or guess is None:
+            return
         ctx = await self.bot.get_context(guess)
         await self.guess(ctx, guess)
 
