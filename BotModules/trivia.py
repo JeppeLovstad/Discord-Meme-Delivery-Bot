@@ -151,6 +151,15 @@ class Trivia(commands.Cog):
 
         await self._print_question(ctx)
 
+
+    @commands.Cog.listener()
+    async def guess_listener(self, guess):
+        if not self.is_playing:
+            return
+        ctx = await self.bot.get_context(guess)
+        await self.guess(ctx, guess)
+
+
     @commands.command(name='guess')
     async def guess(self, ctx, guess):
         # delete message so other people cant see what was guessed
