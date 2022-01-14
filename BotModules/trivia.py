@@ -356,7 +356,7 @@ class Trivia(commands.Cog):
         msg = await ctx.send(f'Time left: {self.seconds}')
         for timestamp in range(self.seconds-1, 0, -1):
             await msg.edit(content=f'Time left: {timestamp}')
-            if not self.is_playing or self._all_have_guessed():
+            if not self.is_playing or self.questions_finished[question_no]:
                 await msg.delete()
                 return
             await asyncio.sleep(1)
