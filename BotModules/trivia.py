@@ -56,11 +56,7 @@ class Trivia(commands.Cog):
     ###
     ### categories
     ###
-    @commands.command(name='t-categories')
-    async def get_categories_short(self, ctx):
-        await self.get_categories(ctx)
-
-    @commands.command(name='trivia-categories')
+    @commands.command(name='trivia-categories', aliases=['t-categories'])
     async def get_categories(self, ctx):
         if self.categories == {}:
             await ctx.send('No categories found.')
@@ -75,12 +71,7 @@ class Trivia(commands.Cog):
     ###
     ### new lobby
     ###
-    @commands.command(name='t-new')
-    async def new_game_short(self, ctx, *args):
-        await ctx.send(args)
-        await self.new_game(ctx, args)
-
-    @commands.command(name='trivia-new')
+    @commands.command(name='trivia-new', aliases=['t-new'])
     async def new_game(self, ctx, *args):
         # check if an active game is already running
         if self.is_playing:
@@ -121,11 +112,7 @@ class Trivia(commands.Cog):
     ###
     ### start game
     ###
-    @commands.command(name='t-start')
-    async def start_short(self, ctx):
-        await self.start(ctx)
-
-    @commands.command(name='trivia-start')
+    @commands.command(name='trivia-start', aliases=['t-start'])
     async def start(self, ctx):
         if len(self.lobby) == 0:
             await ctx.send('There are no people in the lobby')
@@ -135,11 +122,7 @@ class Trivia(commands.Cog):
     ###
     ### cancel game/lobby
     ###
-    @commands.command(name='t-cancel')
-    async def cancel_lobby_short(self, ctx):
-        await self.cancel_lobby(ctx)
-
-    @commands.command(name='trivia-cancel')
+    @commands.command(name='trivia-cancel', aliases=['t-cancel'])
     async def cancel_lobby(self, ctx):
         await ctx.send('Lobby cancelled.')
         self._reset()
@@ -147,11 +130,7 @@ class Trivia(commands.Cog):
     ###
     ### join lobby
     ###
-    @commands.command(name='t-join')
-    async def join_lobby_short(self, ctx):
-        await self.join_lobby(ctx)
-
-    @commands.command(name='trivia-join')
+    @commands.command(name='trivia-join', aliases=['t-join'])
     async def join_lobby(self, ctx):
         if self.is_playing:
             await ctx.send('You cannot join a game in session.')
@@ -167,11 +146,7 @@ class Trivia(commands.Cog):
     ###
     ### leave lobby
     ###
-    @commands.command(name='t-leave')
-    async def leave_lobby_short(self, ctx):
-        await self.leave_lobby(ctx)
-
-    @commands.command(name='trivia-leave')
+    @commands.command(name='trivia-leave', aliases=['t-leave'])
     async def leave_lobby(self, ctx):
         person = ctx.author.nick
         if person not in self.lobby:
@@ -374,7 +349,7 @@ class Trivia(commands.Cog):
     async def _timer(self, ctx, question_no):
         msg = await ctx.send(f'Time left: {self.seconds}')
         for timestamp in range(self.seconds-1, 0, -1):
-            await msg.edit(f'Time left: {timestamp}')
+            await msg.edit(content=f'Time left: {timestamp}')
             if not self.is_playing or self._all_have_guessed():
                 await msg.delete()
                 return
