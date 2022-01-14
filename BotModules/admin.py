@@ -13,7 +13,7 @@ class Admin(commands.Cog):
     def __init__(self, bot:commands.Bot,config):
         self.bot = bot
         self.config = config
-        self.trusted_users = []
+        self.trusted_users = [408192607760416768,917706044942217256,103111970751799296,101649687995486208]
         
     
     async def cog_check(self, ctx):
