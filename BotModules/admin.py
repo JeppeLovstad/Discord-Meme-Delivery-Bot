@@ -25,7 +25,7 @@ class Admin(commands.Cog):
     @commands.command(hidden=True)
     async def update_config(self,ctx, section = "", item = "", value=""):
         success, message = iniparser.setConfigValue(section,item,value)
-        ctx.send(message)
+        await ctx.send(message)
         
     @commands.command(hidden=True)
     async def log(self, ctx, limit:int=10):
