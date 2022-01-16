@@ -78,22 +78,22 @@ class Connectx(commands.Cog):
 
     def play_game(self, ctx,game_id, position = -1,emoji = ""):
         position = position-1 #damn 0-indices
-        self.game_list[game_id]["board"][position][1] = "1"
-        t = position
-        for i,z in enumerate(self.game_list[game_id]["board"][position]):
+        current_game =self.game_list[game_id]
+        t = current_game["grid_size"]-1
+        for i,z in enumerate(current_game["board"][position]):
             if z != self.blank_space:
                 t=i-1
                 break
         if t<0:
             #ctx.send("Column is full, try again.")
-            print("Column is full, try again.")
+            return("Column is full, try again.")
         else:
             self.game_list[game_id]["board"][position][t] = self.game_list[game_id]["players"][ctx.message.author.name]["turnID"]#self.get_user_emoji(ctx,game_id)
         return self.print_board(ctx,game_id)
 
     def do_game(self, ctx,game_id, position = -1,emoji = ""):
-       # self.new_game(ctx,game_id,position,emoji)
-
+        if game_id.isdigit():
+            current_game = self.game_list[game_id]
         if game_id.lower() == "new":
             return self.new_game(ctx,game_id,position,emoji)
         elif game_id.lower() == "list":
@@ -101,6 +101,8 @@ class Connectx(commands.Cog):
             return response
         elif game_id not in self.game_list:
             return f"No such game as {game_id}, Mi'lord.\n Please make a new or pick from list: "+",".join([str(t) for t in self.game_list])
+        elif current_game["grid_size"] <= position or position < 1:
+            return f"No such column as {position}, game is {current_game['grid_size']} big."
         else:
             self.update_player(ctx,game_id,emoji)
             return self.play_game(ctx,game_id,position,emoji)
@@ -118,6 +120,17 @@ class Connectx(commands.Cog):
     def get_user_emoji(self,ctx,game_id):
         return self.game_list[game_id]["players"][ctx.message.author.name]["emoji"]
         #return self.game_list[game_id]["players"][ctx.message.author.name]["emoji"]
+    def test_game(self, ctx,game_id, position = -1,emoji = ""):      
+        self.do_game(ctx,game_id,position,emoji)
+        self.do_game(bot,"1",4,"❤")
+        self.do_game(bot,"1",2,"❤")
+        self.do_game(bot,"1",3,"❤")
+        self.do_game(bot,"1",4,"❤")
+        self.do_game(bot,"1",4,"❤")
+        self.do_game(bot,"1",4,"❤")
+        self.do_game(bot,"1",4,"❤")
+        print(self.do_game(bot,"1",4,"🍕"))
+
 if __name__ == "__main__":
     from configparser import ConfigParser
 
@@ -126,4 +139,4 @@ if __name__ == "__main__":
     #config.read("template.ini")
     bot = commands.Bot(command_prefix="!")
     m = Connectx(bot=bot, config=config["CONNECTX"])
-    print(m.do_game(bot,"1",10,"❤"))
+    #m.test_game(bot,"new",6,"P")
