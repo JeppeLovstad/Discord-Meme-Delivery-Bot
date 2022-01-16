@@ -1,7 +1,7 @@
 from memebot import MemeBot
 from discord.ext import commands
 import discord
-import iniparser
+import utils.iniparser as iniparser
 
     
 if __name__ == "__main__":

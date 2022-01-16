@@ -1,6 +1,6 @@
 from discord.ext import commands
 from discord.ext.commands import cog
-import iniparser
+import utils.iniparser as iniparser
 
 _module_loader = None
 

@@ -5,6 +5,7 @@ from subprocess import run
 # to expose to the eval command
 import datetime
 from collections import Counter
+import utils.iniparser as iniparser
 
 class Admin(commands.Cog):
     """Admin-only commands that make the bot dynamic."""
@@ -14,34 +15,31 @@ class Admin(commands.Cog):
         self.config = config
         self.trusted_users = [408192607760416768,917706044942217256,103111970751799296,101649687995486208]
         
-    def is_trusted_user(self, user_id):
-        return user_id in self.trusted_users or user_id == self.bot.owner_id
+    
+    async def cog_check(self, ctx):
+        user_authorized = ctx.author.id in self.trusted_users or ctx.author.id == self.bot.owner_id
+        if not user_authorized:
+            await ctx.send('User not verified')
+        return ctx.author.id in self.trusted_users or ctx.author.id == self.bot.owner_id
+
+    @commands.command(hidden=True)
+    async def update_config(self,ctx, section = "", item = "", value=""):
+        success, message = iniparser.setConfigValue(section,item,value)
+        await ctx.send(message)
         
     @commands.command(hidden=True)
     async def log(self, ctx, limit:int=10):
-        if not self.is_trusted_user(ctx.author.id):
-            await ctx.send('User not verified')
-            return
-           
         git_output = run(["journalctl", "--unit=discordbot.service", "-n",  f"{limit}", "--no-pager"], capture_output=True)
         git_output = git_output.stdout.decode("utf-8")
         await ctx.send(git_output)
         
     @commands.command(hidden=True)
     async def restart(self, ctx):
-        if not self.is_trusted_user(ctx.author.id):
-            await ctx.send('User not verified')
-            return
-        
         run(["sudo", "systemctl", "restart", "discordbot.service"])
         await ctx.send('Service Restarted')
 
     @commands.command(hidden=True)
     async def pull(self, ctx):
-        if not self.is_trusted_user(ctx.author.id):
-            await ctx.send('User not verified')
-            return
-        
         await ctx.send('pulling dat shit')
         git_output = run(["git", "pull"], capture_output=True)
         git_output = git_output.stdout.decode("utf-8")
@@ -55,9 +53,6 @@ class Admin(commands.Cog):
     @commands.command(hidden=True)
     @commands.is_owner()
     async def load(self,ctx, *, module : str):
-        if not self.is_trusted_user(ctx.author.id):
-            await ctx.send('User not verified')
-            return
         """Loads a module."""
         try:
             self.bot.add_cog(module)
@@ -70,9 +65,6 @@ class Admin(commands.Cog):
     @commands.command(hidden=True)
     @commands.is_owner()
     async def unload(self,ctx, *, module : str):
-        if not self.is_trusted_user(ctx.author.id):
-            await ctx.send('User not verified')
-            return
         """Unloads a module."""
         try:
             self.bot.remove_cog(module)
@@ -85,9 +77,6 @@ class Admin(commands.Cog):
     @commands.command(name='reload', hidden=True)
     @commands.is_owner()
     async def _reload(self,ctx, *, module : str):
-        if not self.is_trusted_user(ctx.author.id):
-            await ctx.send('User not verified')
-            return
         """Reloads a module."""
         try:
             cog = None
@@ -106,10 +95,6 @@ class Admin(commands.Cog):
     @commands.command(pass_context=True, hidden=True)
     @commands.is_owner()
     async def debug(self, ctx, *, code : str):
-        if not self.is_trusted_user(ctx.author.id):
-            await ctx.send('User not verified')
-            return
-        
         """Evaluates code."""
         code = code.strip('` ')
         python = '```py\n{}\n```'
