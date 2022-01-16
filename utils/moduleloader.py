@@ -12,34 +12,47 @@ def getModuleLoader(bot, config):
 
 
 class ModuleLoader:
-    cogs = {} # name: (cog, cog_info, added_to_bot)
+    dict_cogname_info = {} # cog_name: [cog_info,]
     _bot: commands.Bot
 
     def __init__(self, bot: commands.Bot):
         self._bot = bot
-        cog_info = self.getCogInfoFromConfig()
-        self.load_cogs(cog_info)
 
-    def reload_cogs(self, cogs):
-        pass
 
-    def load_cogs(self, cogs):
-        for cogInfo in cogs.values():
-            cog = self.instantiateCogFromCogInfo(cogInfo[1])
-            if cog:
-                self._bot.add_cog(cog)
+    def cog_status(self):
+        
+        
+        return 
 
+    def load_cog(self, cog_name):
+        cog = self.__instantiate_cog_from_cog_info(cog_name)
+        if cog:
+            self._bot.add_cog(cog)
+            
     def unload_cog(self, cog_name):
-        if cog_name in self.cogs:
+        if cog_name in self.dict_cogname_info:
             self._bot.remove_cog(cog_name)
             return f"Cog {cog_name} removed"
         else:
             return f"Could not remove {cog_name}, either it does not exist or something went wrong"
+    
+    def reload_all_cogs(self):
+        cog_info = self.__update_cog_info_from_config()
+        self.load_cogs(cog_info)
 
-    def getCogInfoFromConfig(self):
+    def reload_cog(self, cog_name):
+        self.unload_cog(cog_name)
+        self.load_cog(cog_name)
+
+    def load_cogs(self, cogs):
+        for cogInfo in cogs.values():
+            self.load_cog(cogInfo)
+
+    def __update_cog_info_from_config(self):
         config = iniparser.getConfigAsDict()
         cogs = []
-        for module, enabled in config["BOT_MODULES"].items():
+        for module, value in config["BOT_MODULES"].items():
+            if value.isboolean(): 
                 main_classname = (
                     config["BOT_MODULES"][f"{module}_main"]
                     if f"{module}_main" in config["BOT_MODULES"]
@@ -58,12 +71,11 @@ class ModuleLoader:
                     "main_classname": main_classname,
                     "module_path": module_path,
                     "module_config": module_config,
-                    "enabled":enabled,
                 }
                 cogs.append(cog)
         return cogs
 
-    def instantiateCogFromCogInfo(self, cog_info):
+    def __instantiate_cog_from_cog_info(self, cog_info):
         error_message = instantiated_cog = None
         module, main_classname, module_path, module_config = (
             cog_info["module"],
@@ -73,7 +85,7 @@ class ModuleLoader:
         )
         try:
             # get class from folder
-            imported_class = self.import_bot_module(module_path, main_classname)
+            imported_class = self.__import_bot_module(module_path, main_classname)
             # check if module specific config exists
 
             try:
@@ -96,6 +108,6 @@ class ModuleLoader:
         else:
             print(error_message)
 
-    def import_bot_module(self, module, name):
+    def __import_bot_module(self, module, name):
         module = __import__(module, fromlist=[name])
         return getattr(module, name)
