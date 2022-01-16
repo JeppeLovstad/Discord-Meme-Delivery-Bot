@@ -15,7 +15,7 @@ class Connectx(commands.Cog):
         self.game_counter = 0
 
     @commands.command()
-    async def connectx(self, ctx,game_id, position = -1,emoji = ""):
+    async def connectx(self, ctx,game_id, position:int = -1,emoji:str = ""):
         await ctx.send(self.do_game(ctx,game_id,position,emoji))
 
     def new_game(self, ctx,game_id, position = -1,emoji = ""):    
