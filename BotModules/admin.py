@@ -5,7 +5,7 @@ from subprocess import run
 # to expose to the eval command
 import datetime
 from collections import Counter
-import iniparser
+import utils.iniparser as iniparser
 
 class Admin(commands.Cog):
     """Admin-only commands that make the bot dynamic."""

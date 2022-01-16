@@ -1,7 +1,7 @@
 import requests
 from requests.auth import HTTPBasicAuth
 from random import choice
-from iniparser import getConfigAsDict
+from utils.iniparser import getConfigAsDict
 
 class RedditScrape:
     def __init__(self, sub_reddit = "python", load_amount = 100,post_type = 'all'):
