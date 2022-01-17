@@ -5,7 +5,7 @@ from subprocess import run
 # to expose to the eval command
 import datetime
 from collections import Counter
-import iniparser
+import utils.iniparser as iniparser
 
 class Admin(commands.Cog):
     """Admin-only commands that make the bot dynamic."""
@@ -13,10 +13,10 @@ class Admin(commands.Cog):
     def __init__(self, bot:commands.Bot,config):
         self.bot = bot
         self.config = config
-        self.trusted_users = []
+        self.trusted_users = [408192607760416768,917706044942217256,103111970751799296,101649687995486208]
         
     
-    async def check_cog(self, ctx):
+    async def cog_check(self, ctx):
         user_authorized = ctx.author.id in self.trusted_users or ctx.author.id == self.bot.owner_id
         if not user_authorized:
             await ctx.send('User not verified')
@@ -24,7 +24,8 @@ class Admin(commands.Cog):
 
     @commands.command(hidden=True)
     async def update_config(self,ctx, section = "", item = "", value=""):
-        iniparser.setConfigValue(section,item,value)
+        success, message = iniparser.setConfigValue(section,item,value)
+        await ctx.send(message)
         
     @commands.command(hidden=True)
     async def log(self, ctx, limit:int=10):
