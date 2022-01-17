@@ -286,7 +286,7 @@ class Trivia(commands.Cog):
 
     async def _show_results_for_question(self, ctx):
         self._update_score()
-        msg = f'The correct answer was: {self.correct}\n'
+        msg = f'The correct answer was: {html.unescape(self.correct)}\n'
         msg += 'Score:\n'
         msg += '```\n'
         for person, score in self.score.items():
@@ -392,7 +392,7 @@ class Trivia(commands.Cog):
             'type'          : 'Type',
             'seconds'       : 'Time (sec)'
         }
-        msg  = f'Lobby started (type \'!join\' to join the lobby):\n'
+        msg  = f'Lobby started (type \'!t-join\' to join the lobby):\n'
         msg += '```\n'
         for key, val in args.items():
             if key == 'category':
