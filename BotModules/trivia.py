@@ -139,8 +139,8 @@ class Trivia(commands.Cog):
     @commands.command(name='trivia-join', aliases=['t-join'])
     async def join_lobby(self, ctx):
         if self.is_playing:
-            await ctx.send('You cannot join a game in session.')
-            return
+            # dem late joiners
+            await self.join_late(ctx, ctx.author.nick)
         person = ctx.author.nick
         if person in self.lobby:
             await ctx.send('You are already in the lobby you buffoon')
@@ -158,6 +158,8 @@ class Trivia(commands.Cog):
         if person not in self.lobby:
             await ctx.send('You are not in the lobby you buffoon')
             return
+        if self.is_playing:
+            await self.leave_game(ctx, person)
         self.lobby.remove(person)
         await ctx.send(f'{person} left the lobby!')
         await self._print_lobby_members(ctx)
@@ -326,6 +328,22 @@ class Trivia(commands.Cog):
         msg += '```\n'
         msg += 'The winner(s) were: ' + ', '.join(winners)
         await ctx.send(msg)
+
+    async def join_late(self, ctx, person):
+        if person in self.lobby:
+            return
+        self.score[person] = 0
+        self.has_guessed[person] = False
+        self.guesses[person] = -1
+        await ctx.send(f'{person} has joined the game!')
+
+    async def leave_game(self, ctx, person):
+        if person not in self.lobby:
+            return
+        del self.score[person]
+        del self.has_guessed[person]
+        del self.guesses[person]
+        await ctx.send(f'{person} has left the game :(')
 
     def _all_have_guessed(self):
         return all(self.has_guessed.values())
