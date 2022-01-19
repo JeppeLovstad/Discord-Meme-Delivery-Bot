@@ -79,7 +79,7 @@ class Looper(commands.Cog):
             self.channels[channel_id] = {}
         
         msg = ""
-        if loop in self.channels[channel_id]:
+        if loop.id in self.channels[channel_id]:
             msg = "Loop updated: "
         else:
             msg = "Loop added: "
@@ -128,13 +128,14 @@ if __name__ == "__main__":
     config.read("config.ini")
     bot = commands.Bot(command_prefix="!")
     m = Looper(bot=bot, config=config["REDDIT"])
-    ctx = type('',(object,),{"channel_id": 1})()
-    l = m.create_loop(ctx, "help",)
+    ctx = type('',(object,),{"channel": 1})()
+    l = m.create_loop(ctx, "help")
     #print(isinstance(l, Loop))
+    print(m.add_loop_to_channel(1,l))
     print(m.add_loop_to_channel(1,l))
     #print(m.add_loop_to_channel(1,"1test"))
     print(m.channels[1])
-    print(m.get_specific_loop_for_channel(1,"help"))
-    print(m.remove_loop_from_channel(1,"help"))
-    print(m.channels[1])
+    # print(m.get_specific_loop_for_channel(1,"help"))
+    # print(m.remove_loop_from_channel(1,"help"))
+    # print(m.channels[1])
     #print(m.channels[1]["1test"])
