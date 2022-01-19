@@ -99,7 +99,7 @@ class Looper(commands.Cog):
 class Loop:
     def __init__(self, ctx, command: str, parameters: list[str], interval: int):
         self._ctx = ctx
-        self._channel_id = ctx.channel_id
+        self._channel_id = ctx.channel
         self._command = command
         self._parameters = parameters
         self._interval = interval
