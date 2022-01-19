@@ -27,7 +27,7 @@ class Looper(commands.Cog):
     @commands.command()
     async def listloops(self, ctx):
         msgs = self.get_loops_for_channel(ctx.channel)
-        msgs = map(str, msgs)
+        msgs = list(map(str, msgs))
         if msgs:
             await ctx.send("\n".join(msgs))
         else:
