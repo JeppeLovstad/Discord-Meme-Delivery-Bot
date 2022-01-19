@@ -40,8 +40,8 @@ class Looper(commands.Cog):
         
     @tasks.loop()
     async def looper(self):
-        for channel_id, loops in self.channels.items():
-            for loop_id, loop in loops:
+        for loops in self.channels.values():
+            for loop in loops.values():
                 if not loop:
                     continue
                 if self.looper.current_loop % loop._interval == 0:
@@ -51,7 +51,21 @@ class Looper(commands.Cog):
                     except Exception as e:
                         print(f"loop {loop} disabled: it failed with exception {e}")
                         loop._is_enabled = False
-                
+                        
+    # def test_loop(self):
+    #     for loops in self.channels.values():
+    #         for loop in loops.values():
+    #             if not loop:
+    #                 continue
+    #             if self.looper.current_loop % loop._interval == 0:
+    #                 command,parameters = loop.get_execute_command()
+    #                 try:
+    #                     print(f"invoking {self.bot.get_command(command)}, {list(*parameters)}")
+    #                 except Exception as e:
+    #                     print(f"loop {loop} disabled: it failed with exception {e}")
+    #                     loop._is_enabled = False
+                        
+                        
     def create_loop(self, ctx, command:str, interval:int= 10, parameters:list[str] = []):
         return Loop(ctx=ctx, command=command, parameters=list(parameters), interval=interval)
                 
@@ -135,6 +149,7 @@ if __name__ == "__main__":
     print(m.add_loop_to_channel(1,l))
     #print(m.add_loop_to_channel(1,"1test"))
     print(m.channels[1])
+    #print(m.test_loop())
     # print(m.get_specific_loop_for_channel(1,"help"))
     # print(m.remove_loop_from_channel(1,"help"))
     # print(m.channels[1])
