@@ -1,5 +1,6 @@
-from discord.ext import commands, tasks
+from discord.ext import commands,tasks
 from collections import defaultdict
+from copy import deepcopy
 
 class Looper(commands.Cog):
     def __init__(self, config, bot: commands.Bot):
@@ -49,7 +50,8 @@ class Looper(commands.Cog):
         
     @tasks.loop()
     async def looper(self):
-        for loops in self.channels.values():
+        loops_dict = deepcopy(self.channels)
+        for loops in loops_dict.values():
             for loop in loops.values():
                 if not loop:
                     continue
@@ -60,7 +62,7 @@ class Looper(commands.Cog):
                     except Exception as e:
                         print(f"loop {loop} disabled: it failed with exception {e}")
                         loop._is_enabled = False
-                        
+                            
     def create_loop(self, ctx, command:str, interval:int= 10, parameters:list[str] = []):
         return Loop(ctx=ctx, command=command, parameters=list(parameters), interval=interval)
                 
@@ -139,11 +141,14 @@ if __name__ == "__main__":
     m = Looper(bot=bot, config=config["REDDIT"])
     ctx = type('',(object,),{"channel": 1})()
     l = m.create_loop(ctx, "help")
+    l2 = m.create_loop(ctx, "help2")
     #print(isinstance(l, Loop))
     print(m.add_loop_to_channel(1,l))
-    print(m.add_loop_to_channel(1,l))
+    print(m.add_loop_to_channel(1,l2))
+    print(m.add_loop_to_channel(2,l))
     #print(m.add_loop_to_channel(1,"1test"))
-    print(m.channels[1])
+    print(set([loop for loop in list(m.channels.values())]))
+    #print(bot.get_command("help").commands)
     #print(m.test_loop())
     # print(m.get_specific_loop_for_channel(1,"help"))
     # print(m.remove_loop_from_channel(1,"help"))
