@@ -25,6 +25,12 @@ class Looper(commands.Cog):
         await ctx.send("Removed loop" if success else "Could not find loop")
         
     @commands.command()
+    async def listloops(self, ctx):
+        msgs = self.get_loops_for_channel(ctx.channel)
+        msgs = map(str, msgs)
+        await ctx.send("\n".join(msgs))
+        
+    @commands.command()
     async def setloopstatus(self, ctx, command:str, status=""):
         loop = self.get_specific_loop_for_channel(ctx.channel, command)
         if not loop:
@@ -52,25 +58,11 @@ class Looper(commands.Cog):
                         print(f"loop {loop} disabled: it failed with exception {e}")
                         loop._is_enabled = False
                         
-    # def test_loop(self):
-    #     for loops in self.channels.values():
-    #         for loop in loops.values():
-    #             if not loop:
-    #                 continue
-    #             if self.looper.current_loop % loop._interval == 0:
-    #                 command,parameters = loop.get_execute_command()
-    #                 try:
-    #                     print(f"invoking {self.bot.get_command(command)}, {list(*parameters)}")
-    #                 except Exception as e:
-    #                     print(f"loop {loop} disabled: it failed with exception {e}")
-    #                     loop._is_enabled = False
-                        
-                        
     def create_loop(self, ctx, command:str, interval:int= 10, parameters:list[str] = []):
         return Loop(ctx=ctx, command=command, parameters=list(parameters), interval=interval)
                 
-    def get_loops_for_channel(self, channel_id:int) -> dict:
-        return self.channels[channel_id]
+    def get_loops_for_channel(self, channel_id:int) -> list:
+        return list(self.channels[channel_id].values())
     
     def get_specific_loop_for_channel(self, channel_id:int, command:str):
         loop_id = f"{channel_id}{command}"
