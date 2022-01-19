@@ -40,17 +40,16 @@ class Looper(commands.Cog):
         
     @tasks.loop()
     async def looper(self):
-        for loops in self.channels.values():
-            for loop in loops:
-                if not loop:
-                    continue
-                if self.looper.current_loop % loop._interval == 0:
-                    command,parameters = loop.get_execute_command()
-                    try:
-                        await loop._ctx.invoke(self.bot.get_command(command), *parameters)
-                    except Exception as e:
-                        print(f"loop {loop} disabled: it failed with exception {e}")
-                        loop._is_enabled = False
+        for loop_id, loop in self.channels:
+            if not loop:
+                continue
+            if self.looper.current_loop % loop._interval == 0:
+                command,parameters = loop.get_execute_command()
+                try:
+                    await loop._ctx.invoke(self.bot.get_command(command), *parameters)
+                except Exception as e:
+                    print(f"loop {loop} disabled: it failed with exception {e}")
+                    loop._is_enabled = False
                 
     def create_loop(self, ctx, command:str, interval:int= 10, parameters:list[str] = []):
         return Loop(ctx=ctx, command=command, parameters=list(parameters), interval=interval)
