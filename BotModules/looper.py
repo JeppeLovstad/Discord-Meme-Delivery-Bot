@@ -28,8 +28,11 @@ class Looper(commands.Cog):
     async def listloops(self, ctx):
         msgs = self.get_loops_for_channel(ctx.channel)
         msgs = map(str, msgs)
-        await ctx.send("\n".join(msgs))
-        
+        if msgs:
+            await ctx.send("\n".join(msgs))
+        else:
+            await ctx.send("No loops, add some!")
+                
     @commands.command()
     async def setloopstatus(self, ctx, command:str, status=""):
         loop = self.get_specific_loop_for_channel(ctx.channel, command)
