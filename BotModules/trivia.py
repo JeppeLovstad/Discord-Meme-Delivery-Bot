@@ -115,7 +115,7 @@ class Trivia(commands.Cog):
     @commands.command(name='trivia-start', aliases=['t-start'])
     async def start(self, ctx):
         if len(self.lobby) == 0:
-            await ctx.send('There are no people in the lobby')
+            await ctx.send('There may be a lobby, there may not be a lobby, BUT if there is a lobby, there are no people in it\n- Christoffer 2022')
             return
         await self._start_game(ctx)
 
