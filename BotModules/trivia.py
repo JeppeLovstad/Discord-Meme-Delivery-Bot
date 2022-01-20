@@ -145,6 +145,9 @@ class Trivia(commands.Cog):
         if person in self.lobby:
             await ctx.send('You are already in the lobby you buffoon')
             return
+        if not self.lobby:
+            await ctx.send('There is no lobby you buffoon')
+            return
         self.lobby.append(person)
         await ctx.send(f'{person} joined the lobby!')
         await self._print_lobby_members(ctx)
