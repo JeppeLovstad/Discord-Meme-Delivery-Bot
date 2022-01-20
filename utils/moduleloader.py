@@ -4,7 +4,8 @@ import utils.iniparser as iniparser
 
 _module_loader = None
 
-def getModuleLoader(bot, config):
+
+def getModuleLoader(bot):
     global _module_loader
     if not _module_loader:
         _module_loader = ModuleLoader(bot=bot)
@@ -12,30 +13,29 @@ def getModuleLoader(bot, config):
 
 
 class ModuleLoader:
-    dict_cogname_info = {} # cog_name: [cog_info,]
+    dict_cogname_info = {}  # cog_name: [cog_info,enabled]
     _bot: commands.Bot
 
     def __init__(self, bot: commands.Bot):
         self._bot = bot
-
+        self.__update_cog_info_from_config()
 
     def cog_status(self):
-        
-        
-        return 
+
+        return
 
     def load_cog(self, cog_name):
         cog = self.__instantiate_cog_from_cog_info(cog_name)
         if cog:
             self._bot.add_cog(cog)
-            
+
     def unload_cog(self, cog_name):
         if cog_name in self.dict_cogname_info:
             self._bot.remove_cog(cog_name)
             return f"Cog {cog_name} removed"
         else:
             return f"Could not remove {cog_name}, either it does not exist or something went wrong"
-    
+
     def reload_all_cogs(self):
         cog_info = self.__update_cog_info_from_config()
         self.load_cogs(cog_info)
@@ -48,11 +48,14 @@ class ModuleLoader:
         for cogInfo in cogs.values():
             self.load_cog(cogInfo)
 
+    def sync_bot_with_config(self):
+        pass
+
     def __update_cog_info_from_config(self):
         config = iniparser.getConfigAsDict()
-        cogs = []
         for module, value in config["BOT_MODULES"].items():
-            if value.isboolean(): 
+            cog = {}
+            if value.lower() == "true":
                 main_classname = (
                     config["BOT_MODULES"][f"{module}_main"]
                     if f"{module}_main" in config["BOT_MODULES"]
@@ -71,27 +74,40 @@ class ModuleLoader:
                     "main_classname": main_classname,
                     "module_path": module_path,
                     "module_config": module_config,
+                    "enabled": False,
                 }
-                cogs.append(cog)
-        return cogs
+                self.dict_cogname_info[main_classname] = cog
 
-    def __instantiate_cog_from_cog_info(self, cog_info):
+    def __get_cog_info_from_name(self, cog_name):
+        return (
+            self.dict_cogname_info[cog_name]
+            if cog_name in self.dict_cogname_info
+            else None
+        )
+
+    def __instantiate_cog_from_cog_info(self, cog_name):
         error_message = instantiated_cog = None
+        cog_info = self.__get_cog_info_from_name(cog_name)
+
+        if cog_info is None:
+            print(f"Could not find cog with name {cog_name}")
+            return None
+
         module, main_classname, module_path, module_config = (
             cog_info["module"],
             cog_info["main_classname"],
             cog_info["module_path"],
-            cog_info["module_config"]
+            cog_info["module_config"],
         )
         try:
-            # get class from folder
-            imported_class = self.__import_bot_module(module_path, main_classname)
-            # check if module specific config exists
 
             try:
+                # get class from folder
+                imported_class = self.__import_bot_module(module_path, main_classname)
+                # check if module specific config exists
                 # initate class
                 instantiated_cog = imported_class(bot=self._bot, config=module_config)
-                # update class name
+                # update cog class name if another is specified
                 instantiated_cog.__cog_name__ = module.capitalize()
             except Exception as e:
                 print(f"Could not instantiate {module} skipping..., \n Error: {e}")
@@ -104,10 +120,23 @@ class ModuleLoader:
             error_message = e
 
         if not error_message:
+            cog_info["enabled"] = True
             return instantiated_cog
         else:
             print(error_message)
+            return None
 
     def __import_bot_module(self, module, name):
         module = __import__(module, fromlist=[name])
         return getattr(module, name)
+
+
+if __name__ == "__main__":
+    bot = commands.Bot(command_prefix="!")
+    m = getModuleLoader(bot=bot)
+
+    print(m.dict_cogname_info["Googler"], sep="\n")
+    print(bot.cogs)
+    m.load_cog("Googler")
+    print(bot.cogs)
+    print(m.dict_cogname_info["Googler"], sep="\n")
