@@ -1,5 +1,6 @@
 from discord.ext import commands
-from discord.ext.commands import cog
+import importlib #reload, import_module
+from os import path
 import utils.iniparser as iniparser
 
 _module_loader = None
@@ -11,6 +12,8 @@ def getModuleLoader(bot):
         _module_loader = ModuleLoader(bot=bot)
     return _module_loader
 
+class CogAlreadyRegistered(Exception):
+    pass
 
 class ModuleLoader:
     dict_cogname_info = {}  # cog_name: cog_info
@@ -20,26 +23,32 @@ class ModuleLoader:
         self._bot = bot
         self.__update_cog_info_from_config()
 
-    def is_cog_enabled(self, cog_name):
-        return self.dict_cogname_info[cog_name]["enabled"]
-
-    def load_cog(self, cog_name: str, force_reload=False):
-        if self.is_cog_enabled and force_reload:
+    def load_cog(self, cog_name: str, force_reload:bool=False) -> str:
+        if self.is_cog_enabled(cog_name) and force_reload:
             self.unload_cog(cog_name)
         else:
-            return "Cog is already loaded set force_reload = 1 to reload"
+            raise CogAlreadyRegistered("Cog is already loaded, set force_reload = 1 to reload")
 
         cog = self.__get_instantiated_cog_from_cog_name(cog_name)
         if cog:
             self._bot.add_cog(cog)
+            return f"cog: {cog_name} loaded"
+        return f"cog: {cog_name} could not be loaded"
 
-    def unload_cog(self, cog_name):
-        if cog_name in self.dict_cogname_info:
-            self._bot.remove_cog(cog_name)
-            self.dict_cogname_info[cog_name]["enabled"] = False
+    def unload_cog(self, cog_name) -> str:
+        self._bot.remove_cog(cog_name)
+        cog_info = self.get_cog_info_from_name(cog_name)
+        if cog_info:
+            cog_info["enabled"] = False
             return f"Cog {cog_name} removed"
-        else:
-            return f"Could not remove {cog_name}, either it does not exist or something went wrong"
+        return f"Cog:{cog_name} not found, can't remove"
+    
+    def get_cog_info_from_name(self, cog_name:str) -> dict|None:
+        return self.dict_cogname_info.get(cog_name)
+        
+    def is_cog_enabled(self, cog_name:str) -> bool|None:
+        cog_info = self.get_cog_info_from_name(cog_name)
+        return cog_info["enabled"] if cog_info else None
 
     def reload_all_cogs(self):
         self.__update_cog_info_from_config()
@@ -53,8 +62,10 @@ class ModuleLoader:
         for cog_name in list(cogs.keys()):
             self.load_cog(cog_name)
 
-    def sync_bot_with_config(self):
-        pass
+    def update_changed_cogs(self):
+        self.__update_cog_info_from_config()
+        for cog_info in list[self.dict_cogname_info.values()]:
+            new_cog = self.__get_instantiated_cog_from_cog_info(cog_info)
 
     def __update_cog_info_from_config(self) -> None:
         config = iniparser.getConfigAsDict()
@@ -83,15 +94,8 @@ class ModuleLoader:
                 }
                 self.dict_cogname_info[main_classname] = cog
 
-    def __get_cog_info_from_name(self, cog_name):
-        return (
-            self.dict_cogname_info[cog_name]
-            if cog_name in self.dict_cogname_info
-            else None
-        )
-
     def __get_instantiated_cog_from_cog_name(self, cog_name: str):
-        cog_info = self.__get_cog_info_from_name(cog_name)
+        cog_info = self.get_cog_info_from_name(cog_name)
         return self.__get_instantiated_cog_from_cog_info(cog_info)
 
     def __get_instantiated_cog_from_cog_info(self, cog_info):
@@ -121,17 +125,26 @@ class ModuleLoader:
             print(f"Could not instantiate {module} skipping..., \n Error: {e}")
             error_message = e
 
-        if not error_message:
+        if not error_message and not instantiated_cog:
             cog_info["enabled"] = True
+            cog_info["default_dict"] = instantiated_cog.__dict__
             return instantiated_cog
         else:
             print(error_message)
             return None
+    
+    def __get_bot_module_mdate(self, module:str):
+        file_path = f"./BotModules/{module}"
+        return path.getmtime(file_path)
 
-    def __import_bot_module(self, module, name):
-        module = __import__(module, fromlist=[name])
-        return getattr(module, name)
+    def __import_bot_module(self, module_name:str, package_name:str):
+        _module = importlib.import_module(name=module_name, package=package_name)
+        return getattr(_module, package_name)
 
+    def __reload_imported_bot_module(self, module_name, package_name:str):
+        _curr_module = getattr(module_name, package_name)
+        _new_module = importlib.reload(_curr_module)
+        return _new_module
 
 if __name__ == "__main__":
     bot = commands.Bot(command_prefix="!")
@@ -142,6 +155,6 @@ if __name__ == "__main__":
     m.load_cog("Googler")
     print(bot.cogs, bot.commands)
     print(m.dict_cogname_info["Googler"], sep="\n")
-    m.unload_cog("Googler")
+    m.unload_cog("d")
     print(bot.cogs, bot.commands)
     print(m.dict_cogname_info["Googler"], sep="\n")
