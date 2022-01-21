@@ -50,8 +50,11 @@ class ModuleLoader:
         cog_name = cog_name.lower()
         cog_info = self.get_cog_info_from_name(cog_name)
         if cog_info and self.is_cog_enabled(cog_name):
-            self._bot.remove_cog(cog_info["main_classname"])
-            return f"Cog: {cog_name} removed"
+            self._bot.remove_cog(cog_info["module"].capitalize())
+            if not self.is_cog_enabled(cog_name):
+                return f"Cog: {cog_name} removed"
+            else:
+                return f"Cog: {cog_name} not removed, something went wrong"
         return f"Cog: {cog_name} not loaded"
 
     def get_cog_info_from_name(self, cog_name: str) -> dict | None:
@@ -256,7 +259,7 @@ if __name__ == "__main__":
     print(bot.cogs)
     print(m.reload_all_cogs())
     # utime("BotModules/googler.py", (time(), time()))
-    print(m.sync_changed_files())
+    print(m.unload_cog("aimeme"))
 
     # print(m.load_cog("Googler"))
     # print(m.unload_cog("Googler"))
