@@ -92,7 +92,7 @@ class Admin(commands.Cog):
         """Reloads a module."""
         msg = ""
         try:
-            msg = self.module_loader.unload_cog(module_name)
+            msg = self.module_loader.reload_cog(module_name)
         except Exception as e:
             msg = "{}: {}".format(type(e).__name__, e)
         await ctx.send(msg)
