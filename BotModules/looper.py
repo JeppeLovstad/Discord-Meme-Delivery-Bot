@@ -62,7 +62,7 @@ class Looper(commands.Cog):
         loops = []
 
         for loop_dict in self.channels.values():
-            loops.append(loop_dict.values())
+            loops.append(list(loop_dict.values())[0])
 
         for loop in loops:
             if not loop:
@@ -156,16 +156,22 @@ if __name__ == "__main__":
     config = ConfigParser()
     config.read("config.ini")
     bot = commands.Bot(command_prefix="!")
-    m = Looper(bot=bot, config=config["REDDIT"])
+    m = Looper(bot=bot, config=config)
     ctx = type("", (object,), {"channel": 1})()
     l = m.create_loop(ctx, "help")
     l2 = m.create_loop(ctx, "help2")
     # print(isinstance(l, Loop))
-    print(m.add_loop_to_channel(1, l))
-    print(m.add_loop_to_channel(1, l2))
-    print(m.add_loop_to_channel(2, l))
+    # print(m.add_loop_to_channel(1, l))
+    # print(m.add_loop_to_channel(1, l2))
+    # print(m.add_loop_to_channel(2, l))
+    # loops = []
+    # for loop_dict in m.channels.values():
+    #     loops.append(list(loop_dict.values())[0])
+
+    # print(loops[0]._interval)
+
     # print(m.add_loop_to_channel(1,"1test"))
-    print(set([loop for loop in list(m.channels.values())]))
+    # print(set([loop for loop in list(m.channels.values())]))
     # print(bot.get_command("help").commands)
     # print(m.test_loop())
     # print(m.get_specific_loop_for_channel(1,"help"))
