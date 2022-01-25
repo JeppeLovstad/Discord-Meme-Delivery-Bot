@@ -67,6 +67,12 @@ class Admin(commands.Cog):
                 + msg
             )
 
+
+    @commands.command(hidden=True)
+    async def listcogs(self, ctx, *, module_name: str = ""):
+        await ctx.send(self.module_loader.list_cogs(module_name))
+        
+        
     @commands.command(hidden=True)
     async def load(self, ctx, *, module_name: str):
         """Loads a module."""

@@ -94,6 +94,12 @@ class ModuleLoader:
             str_list.append(self.unload_cog(cog_name))
         return str_list
 
+    def list_cogs(self, cog_name:str = ""):
+        if cog_name:
+            return self.dict_cogname_info.get(cog_name)
+        else:
+            return self.dict_cogname_info.items()
+
     ### Get files that has changed and try to reload them.
     def sync_changed_files(self):
         # self.__update_cogs_info_from_dict()
@@ -118,6 +124,9 @@ class ModuleLoader:
                 if old_cog_info["last_change_date"] != new_cog_info["last_change_date"]:
                     cogs_to_load.append(module_name)
                     msgs.append(f"Reloading {module_name} file has changed")
+
+        print("cogs_to_unload", cogs_to_unload)
+        print("cogs_to_load", cogs_to_load)
 
         self.unload_cogs(cogs_to_unload)
         self.reload_cogs(cogs_to_load)
@@ -260,6 +269,7 @@ if __name__ == "__main__":
     print(m.reload_all_cogs())
     # utime("BotModules/googler.py", (time(), time()))
     print(m.unload_cog("aimeme"))
+    print()
 
     # print(m.load_cog("Googler"))
     # print(m.unload_cog("Googler"))
