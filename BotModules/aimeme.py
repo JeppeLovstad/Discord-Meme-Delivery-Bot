@@ -8,7 +8,7 @@ from discord.ext import commands, tasks
 class AIMemeGenerator(commands.Cog):
 
     quips = [
-        "You know what time it is",
+        "You know what time it is ",
         "Are you ready for this?",
         "For your eyes only",
         "I like this one",
