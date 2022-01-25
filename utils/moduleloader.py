@@ -222,7 +222,7 @@ class ModuleLoader:
             return error_message
 
     def __get_bot_module_mdate(self, module: str):
-        file_path = f"{module.lower()}.py"
+        file_path = f"{module}.py"
         try:
             return path.getmtime(file_path)
         except FileNotFoundError as e:
