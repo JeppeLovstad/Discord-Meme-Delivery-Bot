@@ -141,11 +141,12 @@ class Trivia(commands.Cog):
         if self.is_playing:
             # dem late joiners
             await self.join_late(ctx, ctx.author.nick)
+            return
         person = ctx.author.nick
         if person in self.lobby:
             await ctx.send('You are already in the lobby you buffoon')
             return
-        if not self.lobby:
+        if not self.is_lobby:
             await ctx.send('There is no lobby you buffoon')
             return
         self.lobby.append(person)
