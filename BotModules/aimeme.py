@@ -56,6 +56,10 @@ class AIMemeGenerator(commands.Cog):
             self.meme_to_templateid_dict,
         ) = self.get_available_memes()
         self.error_memes_dict = {}
+        self.loop_get_new_sessions.change_interval(hours=72)
+        self.loop_get_new_sessions.start()
+
+    def set_session_token(self):
         token, iflip_sess = self.getTokenAndSession()
         self.initiateRequestParams(token, iflip_sess)
 
@@ -100,24 +104,20 @@ class AIMemeGenerator(commands.Cog):
             send = self.generateMeme()
         await ctx.send(send)
 
-    ## add support for multiple channels
-    @commands.command()
-    async def startloop(self, ctx, minutes: int = -1):
-        if self.loopmeme.is_running():
-            await ctx.send("Meme loop already running")
-        else:
-            interval = 60 if minutes == -1 else minutes
-            self.loopmeme.change_interval(minutes=interval)
-            self.loopmeme.start(ctx)
-            await ctx.send(f"Meme loop started with interval: {interval}")
+    # ## add support for multiple channels
+    # @commands.command()
+    # async def startloop(self, ctx, minutes: int = -1):
+    #     if self.loopmeme.is_running():
+    #         await ctx.send("Meme loop already running")
+    #     else:
+    #         interval = 60 if minutes == -1 else minutes
+    #         self.loopmeme.change_interval(minutes=interval)
+    #         self.loopmeme.start(ctx)
+    #         await ctx.send(f"Meme loop started with interval: {interval}")
 
     @tasks.loop()
-    async def loopmeme(self, ctx):
-        send = random.choice(self.quips) + "\n" + self.generateMeme()
-        # for channel in self.bot.get_all_channels():
-        #    if channel in :
-
-        await ctx.send(send)
+    async def loop_get_new_sessions(self):
+        self.set_session_token()
 
     @commands.command()
     async def captionmeme(self, ctx, meme_id: str = "-1", *text):
