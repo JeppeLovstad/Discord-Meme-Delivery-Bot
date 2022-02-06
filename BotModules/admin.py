@@ -18,7 +18,6 @@ class Admin(commands.Cog):
         self.module_loader = get_module_loader(bot)
         self.trusted_users = [
             408192607760416768,
-            917706044942217256,
             103111970751799296,
             101649687995486208,
         ]
