@@ -95,13 +95,10 @@ class Looper(commands.Cog):
     def add_loop_to_channel(self, channel_id: int, loop):
         command = self.bot.get_command(loop._command)
         
-        if command.hidden:
-            return ""
-        
         if not isinstance(loop, Loop):
             return "Must supply a loop"
 
-        if not command:
+        if not command or command.hidden:
             return "command does not exist"
 
         if len(self.get_loops_for_channel(channel_id)) >= self.max_loops_per_channel:
