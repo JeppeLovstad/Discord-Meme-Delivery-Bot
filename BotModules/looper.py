@@ -61,6 +61,9 @@ class Looper(commands.Cog):
     async def looper(self):
         loops = []
 
+        if len(self.channels) == 0:
+            return
+
         for loop_dict in self.channels.values():
             loops.append(list(loop_dict.values())[0])
 
