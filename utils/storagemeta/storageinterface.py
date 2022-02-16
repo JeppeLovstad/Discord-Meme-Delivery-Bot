@@ -1,4 +1,5 @@
 import abc
+from discord.ext import commands, tasks
 
 
 class StorageMeta(abc.ABC):
@@ -20,11 +21,22 @@ class StorageMeta(abc.ABC):
     def delete(self, key: str, module:str, server:str = "", channel:str = "", user:str = "") -> bool:
         pass
     
-    
     @abc.abstractmethod
-    def store_message(self,key: str, value: object, module:str, server:str = "", channel:str = "", user:str = "", value_type: str = "str") -> bool:
+    def store_message(self,key: str, value: str, module:str, server:str = "", channel:str = "", user:str = "") -> bool:
         pass
     
     @abc.abstractmethod
-    def retrieve_message(self, message_id: int, server:str = "", channel:str = "", user:str = "") -> str:
+    def retrieve_message(self, message_id: int, server:str = "", channel:str = "", user:str = "", limit: int = 10) -> str:
+        pass
+    
+    @abc.abstractmethod
+    def get_server(self, server_id:int): 
+        pass
+    
+    @abc.abstractmethod
+    def get_channel(self, channel_id:int): 
+        pass
+    
+    @abc.abstractmethod
+    def get_user(self, user_id:int): 
         pass
