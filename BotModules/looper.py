@@ -60,7 +60,7 @@ class Looper(commands.Cog):
     @tasks.loop()
     async def looper(self):
         loops = []
-
+        
         if len(self.channels) == 0:
             return
 
@@ -132,7 +132,7 @@ class Looper(commands.Cog):
 class Loop:
     def __init__(self, ctx, command: str, parameters: list[str], interval: int):
         self._ctx = ctx
-        self._channel = ctx.channel.id
+        self._channel = ctx.channel
         self._channel_id = ctx.channel.id
         self._command = command
         self._parameters = parameters
