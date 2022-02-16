@@ -18,7 +18,7 @@ class Looper(commands.Cog):
             ctx=ctx, command=command, parameters=list(parameters), interval=interval
         )
 
-        msg = self.add_loop_to_channel(ctx.channel, loop)
+        msg = self.add_loop_to_channel(ctx.channel.id, loop)
         await ctx.send(msg)
 
     @commands.command()
