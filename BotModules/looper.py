@@ -23,12 +23,12 @@ class Looper(commands.Cog):
 
     @commands.command()
     async def removeloop(self, ctx, command: str):
-        success = self.remove_loop_from_channel(ctx.channel, command)
+        success = self.remove_loop_from_channel(ctx.channel.id, command)
         await ctx.send("Removed loop" if success else "Could not find loop")
 
     @commands.command()
     async def listloops(self, ctx):
-        msgs = self.get_loops_for_channel(ctx.channel)
+        msgs = self.get_loops_for_channel(ctx.channel.id)
         msgs = list(map(str, msgs))
         if msgs:
             await ctx.send("\n".join(msgs))
@@ -37,7 +37,7 @@ class Looper(commands.Cog):
 
     @commands.command()
     async def setloopstatus(self, ctx, command: str, status=""):
-        loop = self.get_specific_loop_for_channel(ctx.channel, command)
+        loop = self.get_specific_loop_for_channel(ctx.channel.id, command)
         if not loop:
             await ctx.send("Could not find loop")
             return None
@@ -132,7 +132,8 @@ class Looper(commands.Cog):
 class Loop:
     def __init__(self, ctx, command: str, parameters: list[str], interval: int):
         self._ctx = ctx
-        self._channel_id = ctx.channel
+        self._channel = ctx.channel.id
+        self._channel_id = ctx.channel.id
         self._command = command
         self._parameters = parameters
         self._interval = interval
