@@ -46,7 +46,6 @@ class AIMemeGenerator(commands.Cog):
         "REGEX THIS, BITCH",
         "I jest",
     ]
-    loop_channels = {}
 
     def __init__(self, config, bot: commands.Bot):
         self.bot = bot
@@ -56,8 +55,11 @@ class AIMemeGenerator(commands.Cog):
             self.meme_to_templateid_dict,
         ) = self.get_available_memes()
         self.error_memes_dict = {}
-        self.loop_get_new_sessions.change_interval(hours=72)
+        self.loop_get_new_sessions.change_interval(hours=24)
         self.loop_get_new_sessions.start()
+
+    def cog_unload(self):
+        self.loop_get_new_sessions.cancel()
 
     def set_session_token(self):
         token, iflip_sess = self.getTokenAndSession()

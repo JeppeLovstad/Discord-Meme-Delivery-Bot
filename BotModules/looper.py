@@ -12,6 +12,9 @@ class Looper(commands.Cog):
         self.looper.change_interval(minutes=1)
         self.looper.start()
 
+    def cog_unload(self):
+        self.looper.cancel()
+
     @commands.command()
     async def setloop(self, ctx, command: str, interval: int = 10, *parameters: str):
         loop = self.create_loop(
@@ -60,7 +63,7 @@ class Looper(commands.Cog):
     @tasks.loop()
     async def looper(self):
         loops = []
-        
+
         if len(self.channels) == 0:
             return
 
@@ -97,7 +100,7 @@ class Looper(commands.Cog):
 
     def add_loop_to_channel(self, channel_id: int, loop):
         command = self.bot.get_command(loop._command)
-        
+
         if not isinstance(loop, Loop):
             return "Must supply a loop"
 
