@@ -6,8 +6,9 @@ class Misc(commands.Cog):
         self.bot = bot
         self.config = config
 
-    @commands.command()
+    @commands.command(aliases=["s"])
     async def sass(self, ctx, *text_to_sass):
+        text_to_sass = " ".join(text_to_sass)
         sassed_text = "".join(
             [
                 c.upper() if idx % 2 == 0 else c.lower()
