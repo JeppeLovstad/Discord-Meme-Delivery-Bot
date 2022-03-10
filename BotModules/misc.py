@@ -19,7 +19,7 @@ class Misc(commands.Cog):
 
         webhook = await ctx.channel.create_webhook(name=ctx.author.name)
         await webhook.send(
-            str(sassed_text), username=ctx.author.name, avatar_url=ctx.author.avatar_url
+            str(sassed_text), username=ctx.author.nick, avatar_url=ctx.author.avatar_url
         )
 
         webhooks = await ctx.channel.webhooks()
