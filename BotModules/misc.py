@@ -7,11 +7,11 @@ class Misc(commands.Cog):
         self.config = config
 
     @commands.command()
-    async def sass(self, ctx):
+    async def sass(self, ctx, *text_to_sass):
         sassed_text = "".join(
             [
                 c.upper() if idx % 2 == 0 else c.lower()
-                for idx, c in enumerate(list(ctx.message))
+                for idx, c in enumerate(list(text_to_sass))
             ]
         )
         await ctx.send(sassed_text)
