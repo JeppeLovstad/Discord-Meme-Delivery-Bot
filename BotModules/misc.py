@@ -16,6 +16,7 @@ class Misc(commands.Cog):
             ]
         )
         await ctx.send(sassed_text)
+        await ctx.message.delete()
 
 
 # if __name__ == "__main__":
