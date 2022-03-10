@@ -15,7 +15,17 @@ class Misc(commands.Cog):
                 for idx, c in enumerate(list(text_to_sass))
             ]
         )
-        await ctx.send(sassed_text)
+        # await ctx.send(sassed_text)
+
+        webhook = await ctx.channel.create_webhook(name=ctx.member.name)
+        await webhook.send(
+            str(sassed_text), username=ctx.member.name, avatar_url=ctx.member.avatar_url
+        )
+
+        webhooks = await ctx.channel.webhooks()
+        for webhook in webhooks:
+            await webhook.delete()
+
         await ctx.message.delete()
 
 
