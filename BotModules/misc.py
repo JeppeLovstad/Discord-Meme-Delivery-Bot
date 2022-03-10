@@ -17,9 +17,9 @@ class Misc(commands.Cog):
         )
         # await ctx.send(sassed_text)
 
-        webhook = await ctx.channel.create_webhook(name=ctx.member.name)
+        webhook = await ctx.channel.create_webhook(name=ctx.author.name)
         await webhook.send(
-            str(sassed_text), username=ctx.member.name, avatar_url=ctx.member.avatar_url
+            str(sassed_text), username=ctx.author.name, avatar_url=ctx.author.avatar_url
         )
 
         webhooks = await ctx.channel.webhooks()
