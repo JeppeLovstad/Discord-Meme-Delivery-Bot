@@ -1,4 +1,5 @@
 from discord.ext import commands
+from typing import Optional
 
 
 class Misc(commands.Cog):
@@ -15,15 +16,20 @@ class Misc(commands.Cog):
         )
 
     @commands.command(aliases=["s"])
-    async def sass(self, ctx, *, text_to_sass=""):
+    async def sass(
+        self, ctx, Messages_to_go_back: Optional[int] = 1, *, text_to_sass=""
+    ):
+
+        if Messages_to_go_back is None or Messages_to_go_back < 1:
+            Messages_to_go_back = 1
 
         if text_to_sass == "":
-            text_to_sass = await ctx.channel.history(limit=2).flatten()
-            # await ctx.send(text_to_sass[0])
+            text_to_sass = await ctx.channel.history(
+                limit=1 + Messages_to_go_back
+            ).flatten()
             sassed_text = self.sass_text(text_to_sass[-1].content)
             await ctx.send(sassed_text)
         else:
-            # text_to_sass = " ".join(text_to_sass)
             sassed_text = self.sass_text(text_to_sass)
             webhook = await ctx.channel.create_webhook(name=ctx.author.name)
             await webhook.send(
