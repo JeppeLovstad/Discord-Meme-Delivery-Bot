@@ -17,10 +17,11 @@ class Misc(commands.Cog):
     @commands.command(aliases=["s"])
     async def sass(self, ctx, *, text_to_sass=None):
 
-        if text_to_sass is None:
+        if text_to_sass is None or text_to_sass == "":
             text_to_sass = await ctx.channel.history(
                 limit=2, oldest_first=True
             ).flatten()
+            await ctx.send(text_to_sass[0].content)
             sassed_text = self.sass_text(text_to_sass[0].content)
             await ctx.send(sassed_text)
         else:
