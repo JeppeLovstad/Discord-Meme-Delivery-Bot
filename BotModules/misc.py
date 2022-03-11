@@ -20,8 +20,8 @@ class Misc(commands.Cog):
         if text_to_sass is None:
             text_to_sass = await ctx.channel.history(
                 limit=2, oldest_first=True
-            ).flatten()[0]
-            sassed_text = self.sass_text(text_to_sass)
+            ).flatten()
+            sassed_text = self.sass_text(text_to_sass[0])
             await ctx.send(sassed_text)
         else:
             text_to_sass = " ".join(text_to_sass)
