@@ -21,7 +21,7 @@ class Misc(commands.Cog):
             text_to_sass = await ctx.channel.history(
                 limit=2, oldest_first=True
             ).flatten()
-            sassed_text = self.sass_text(text_to_sass[0])
+            sassed_text = self.sass_text(text_to_sass[0].content)
             await ctx.send(sassed_text)
         else:
             text_to_sass = " ".join(text_to_sass)
