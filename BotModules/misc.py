@@ -19,7 +19,7 @@ class Misc(commands.Cog):
 
         if text_to_sass is None or text_to_sass == "":
             text_to_sass = await ctx.channel.history(limit=2).flatten()
-            await ctx.send(text_to_sass[0])
+            # await ctx.send(text_to_sass[0])
             sassed_text = self.sass_text(text_to_sass[0].content)
             await ctx.send(sassed_text)
         else:
