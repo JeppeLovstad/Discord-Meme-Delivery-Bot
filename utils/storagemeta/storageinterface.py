@@ -10,19 +10,19 @@ class StorageMeta(abc.ABC):
         pass
     
     @abc.abstractmethod
-    def store(self,key: str, value: object, module:str, server:str = "", channel:str = "", user:str = "", value_type: str = "str") -> bool:
+    def store(self,key: tuple[str, ...], value: object, module:str, server:str = "", channel:str = "", user:str = "", value_type: str = "str") -> bool:
         pass
     
     @abc.abstractmethod
-    def retrieve(self, key: str, module:str, server:str = "", channel:str = "", user:str = "", value_type: str = "") -> object:
+    def retrieve(self, key: tuple[str, ...], module:str, server:str = "", channel:str = "", user:str = "", value_type: str = "") -> object:
         pass
     
     @abc.abstractmethod
-    def delete(self, key: str, module:str, server:str = "", channel:str = "", user:str = "") -> bool:
+    def delete(self, key: tuple[str, ...], module:str, server:str = "", channel:str = "", user:str = "") -> bool:
         pass
     
     @abc.abstractmethod
-    def store_message(self,key: str, value: str, module:str, server:str = "", channel:str = "", user:str = "") -> bool:
+    def store_message(self,key: tuple[str, ...], value: str, module:str, server:str = "", channel:str = "", user:str = "") -> bool:
         pass
     
     @abc.abstractmethod
