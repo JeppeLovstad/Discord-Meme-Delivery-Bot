@@ -43,13 +43,16 @@ class Misc(commands.Cog):
         self,
         ctx,
         Messages_to_go_back: Optional[int] = 1,
+        format: Optional[str] = "sass",
         *,
-        text_to_sass="",
-        format: str = "sass"
+        text_to_sass=""
     ):
 
         if Messages_to_go_back is None or Messages_to_go_back < 1:
             Messages_to_go_back = 1
+
+        if format is None:
+            format = "sass"
 
         if text_to_sass == "":
             text_to_sass = await ctx.channel.history(
