@@ -11,13 +11,19 @@ class StorageInPostgres(StorageMeta, metaclass=ABCMeta):
     ssh_server = None
     postgres_args = None
     ssh_tunnel_args = None
+    is_setup = False
 
-    def __init__(self):
+    def __init__(self, module: str = ""):
         self.postgres_args, self.ssh_tunnel_args = self.__get_config__()
+        self.module = module
+        print("init called")
 
     async def __aenter__(self):
-        self.setup_ssh_tunnel(self.ssh_tunnel_args)
-        await self.__setup_storage_method__(self.postgres_args)
+        if not self.is_setup:
+            self.setup_ssh_tunnel(self.ssh_tunnel_args)
+            await self.__setup_storage_method__(self.postgres_args)
+        self.is_setup = True
+        print("enter called")
         return self
 
     def __get_config__(self):
@@ -83,7 +89,6 @@ class StorageInPostgres(StorageMeta, metaclass=ABCMeta):
         self,
         key: tuple[str, ...],
         value: object,
-        module: str,
         server: str = "",
         channel: str = "",
         user: str = "",
@@ -94,7 +99,6 @@ class StorageInPostgres(StorageMeta, metaclass=ABCMeta):
     def retrieve(
         self,
         key: tuple[str, ...],
-        module: str,
         server: str = "",
         channel: str = "",
         user: str = "",
@@ -105,7 +109,6 @@ class StorageInPostgres(StorageMeta, metaclass=ABCMeta):
     def delete(
         self,
         key: tuple[str, ...],
-        module: str,
         server: str = "",
         channel: str = "",
         user: str = "",
@@ -116,7 +119,6 @@ class StorageInPostgres(StorageMeta, metaclass=ABCMeta):
         self,
         key: tuple[str, ...],
         value: str,
-        module: str,
         server: str = "",
         channel: str = "",
         user: str = "",
@@ -156,8 +158,12 @@ class StorageInPostgres(StorageMeta, metaclass=ABCMeta):
 
 
 async def run():
-    async with StorageInPostgres() as dal:
-        await dal.test()
+    async with StorageInPostgres("Meme") as dal:
+        async with StorageInPostgres("quiz") as dal2:
+            await dal.test()
+            print(dal.module)
+            await dal2.test()
+            print(dal2.module)
 
 
 if __name__ == "__main__":

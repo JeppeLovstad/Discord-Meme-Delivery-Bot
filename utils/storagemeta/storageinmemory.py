@@ -32,7 +32,8 @@ class StorageInMemory(StorageMeta, metaclass=ABCMeta):
         if value_type == "json":
             value = json.dumps(value)
 
-        self.key_values_dict[(key, module, server, channel, user)] = (value, value_type)
+        dict_key = (key, module, server, channel, user)
+        self.key_values_dict[dict_key] = (value, value_type)
 
         return True
 
@@ -63,6 +64,8 @@ class StorageInMemory(StorageMeta, metaclass=ABCMeta):
         channel: str = "",
         user: str = "",
     ) -> bool:
+
+        dict_key = (key, module, server, channel, user)
         return True
 
     def store_message(
