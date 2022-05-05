@@ -12,17 +12,19 @@ class StorageInPostgres(StorageMeta, metaclass=ABCMeta):
     postgres_args = None
     ssh_tunnel_args = None
     is_setup = False
+    usage = {}
 
     def __init__(self, module: str = ""):
         self.postgres_args, self.ssh_tunnel_args = self.__get_config__()
         self.module = module
+        self.__register_usage__(self.module)
         print("init called")
 
     async def __aenter__(self):
         if not self.is_setup:
             self.setup_ssh_tunnel(self.ssh_tunnel_args)
             await self.__setup_storage_method__(self.postgres_args)
-        self.is_setup = True
+            self.is_setup = True
         print("enter called")
         return self
 
@@ -147,12 +149,27 @@ class StorageInPostgres(StorageMeta, metaclass=ABCMeta):
     async def __aexit__(self, *args):
         await self.close()
 
+    def __register_usage__(self, module):
+        if module in self.usage:
+            self.usage[module] += 1
+        else:
+            self.usage[module] = 1
+            
+    def __unregister_usage__(self, module):
+        self.usage[module] -= 1
+        if self.usage[self.module] == 0:
+            del self.usage[module]
+            
     async def close(self):
         try:
-            if self.conn is not None:
-                await self.conn.close()
-            if self.ssh_server is not None:
-                self.ssh_server.close()
+            self.__unregister_usage__(self.module)
+    
+            if len(self.usage) == 0:
+                if self.conn is not None:
+                    await self.conn.close()
+                if self.ssh_server is not None:
+                    self.ssh_server.close()
+                    is_setup = False
         except:
             print("Something went wrong while closing database connection")
 
@@ -162,14 +179,15 @@ async def run():
         async with StorageInPostgres("quiz") as dal2:
             await dal.test()
             print(dal.module)
-            await dal2.test()
-            print(dal2.module)
+            print(dal.usage)
+        await dal2.test()
+        print(dal2.usage)
 
 
 if __name__ == "__main__":
     import asyncio
     import sys
-
+    
     if sys.platform == "win32":
         asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
