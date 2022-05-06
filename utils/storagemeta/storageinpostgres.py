@@ -1,7 +1,6 @@
 from abc import ABCMeta
 from storageinterface import StorageMeta
 import psycopg as pg
-from sshtunnel import SSHTunnelForwarder
 import utils.iniparser as iniparser
 
 
@@ -18,14 +17,15 @@ class StorageInPostgres(StorageMeta, metaclass=ABCMeta):
         self.postgres_args, self.ssh_tunnel_args = self.__get_config__()
         self.module = module
         self.__register_usage__(self.module)
-        print("init called")
 
-    async def __aenter__(self):
+    async def start(self):
         if not self.is_setup:
             self.setup_ssh_tunnel(self.ssh_tunnel_args)
             await self.__setup_storage_method__(self.postgres_args)
             self.is_setup = True
-        print("enter called")
+
+    async def __aenter__(self):
+        await self.start()
         return self
 
     def __get_config__(self):
@@ -46,6 +46,11 @@ class StorageInPostgres(StorageMeta, metaclass=ABCMeta):
             and self.postgres_args is not None
             and self.ssh_tunnel_args["sshtunnel"]
         ):
+            try:
+                from sshtunnel import SSHTunnelForwarder
+            except:
+                raise
+            
             try:
                 self.ssh_server = SSHTunnelForwarder(
                     (ssh_tunnel_args["ssh_host"], int(ssh_tunnel_args["ssh_port"])),
