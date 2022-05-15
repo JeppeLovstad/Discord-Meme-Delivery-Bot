@@ -2,7 +2,7 @@ from abc import ABCMeta
 from storageinterface import StorageMeta
 import psycopg as pg
 import utils.iniparser as iniparser
-
+from postgresqldal import 
 
 class StorageInPostgres(StorageMeta, metaclass=ABCMeta):
 
