@@ -91,6 +91,7 @@ class PostgreSQLDAL():
                 await self.conn.close()
             if self.ssh_server is not None:
                 self.ssh_server.close()
+            self.conn = None
         except:
             print("Something went wrong while closing database connection")
             
