@@ -10,16 +10,18 @@ class PostgreSQLDAL():
     postgres_args = None
     ssh_tunnel_args = None
 
-    async def start(self):
-        self.__setup_ssh_tunnel__(self.ssh_tunnel_args)
-        await self.__setup_storage_method__(self.postgres_args)
 
     def __init__(self):
         self.postgres_args, self.ssh_tunnel_args = self.__get_config__()
-
-    async def __aenter__(self):
-        await self.start()
-        return self
+        await self.__start__()
+    # async def __aenter__(self):
+    #     await self.start()
+    #     return self
+    
+    def __start__(self):
+        if self.conn is None:
+            self.__setup_ssh_tunnel__(self.ssh_tunnel_args)
+            self.__setup_storage_method__(self.postgres_args)
 
     def __get_config__(self):
         config = iniparser.getConfigAsDict()
@@ -95,6 +97,10 @@ class PostgreSQLDAL():
         except:
             print("Something went wrong while closing database connection")
             
-            
-DAL = PostgreSQLDAL()
+
+
+
+async def get_DAL():
+    DAL = PostgreSQLDAL()
+                
 
