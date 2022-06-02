@@ -7,24 +7,14 @@ from postgresqldal import PostgreSQLDAL
 class StorageInPostgres(StorageMeta, metaclass=ABCMeta):
 
     DAL = None
-    # ssh_server = None
-    # postgres_args = None
-    # ssh_tunnel_args = None
     is_setup = False
     usage = {}
 
     def __init__(self, module: str = ""):
         if self.DAL:
-            DAL = PostgreSQLDAL()
+            DAL = PostgreSQLDAL.create()
         self.module = module
         self.__register_usage__(self.module)
-
-    async def start(self):
-        if not self.is_setup and self.DAL:
-            self.DAL.start()
-            #self.setup_ssh_tunnel(self.ssh_tunnel_args)
-            #await self.__setup_storage_method__(self.postgres_args)
-            self.is_setup = True
 
     async def __aenter__(self):
         await self.start()
@@ -42,45 +32,6 @@ class StorageInPostgres(StorageMeta, metaclass=ABCMeta):
 
     #     return postgres_args, ssh_tunnel_args
 
-    # def setup_ssh_tunnel(self, ssh_tunnel_args):
-    #     if (
-    #         self.ssh_tunnel_args is not None
-    #         and self.postgres_args is not None
-    #         and self.ssh_tunnel_args["sshtunnel"]
-    #     ):
-    #         try:
-    #             from sshtunnel import SSHTunnelForwarder
-    #         except:
-    #             raise
-            
-    #         try:
-    #             self.ssh_server = SSHTunnelForwarder(
-    #                 (ssh_tunnel_args["ssh_host"], int(ssh_tunnel_args["ssh_port"])),
-    #                 ssh_pkey=ssh_tunnel_args["ssh_cert_location"],
-    #                 ssh_private_key_password=ssh_tunnel_args[
-    #                     "ssh_private_key_password"
-    #                 ],
-    #                 ssh_username=ssh_tunnel_args["ssh_user"],
-    #                 remote_bind_address=(
-    #                     self.postgres_args["host"],
-    #                     int(self.postgres_args["port"]),
-    #                 ),
-    #                 local_bind_address=(
-    #                     self.postgres_args["host"],
-    #                     int(self.postgres_args["port"]),
-    #                 ),
-    #             )
-
-    #             ## Need to update port and host if using ssh tunnel
-    #             if self.ssh_server is not None:
-    #                 self.ssh_server.start()
-    #                 self.postgres_args["host"] = self.ssh_server.local_bind_host
-    #                 self.postgres_args["port"] = self.ssh_server.local_bind_port
-
-    #         except:
-    #             print("Could not setup ssh_tunnel")
-    #     else:
-    #         print("ssh tunnel disabled or not setup")
 
     async def __setup_storage_method__(self, postgres_args) -> None:
         self.conn = await pg.AsyncConnection.connect(**postgres_args)
