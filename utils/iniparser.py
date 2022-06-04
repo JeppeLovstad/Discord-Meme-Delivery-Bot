@@ -1,6 +1,6 @@
 import configparser
 from os import path,walk
-
+from typing import Optional
 
 _loaded_config = None
 
@@ -13,10 +13,17 @@ class IniParser():
     def __init__(self):
         self.__updateConfig()
         
-    def getConfigAsDict(self, section:str="") -> dict:
+    def getConfigAsDict(self, section:str="") -> Optional[dict]:
         self.__updateConfig()
         _dict = {s:dict(self.config.items(s)) for s in self.config.sections()}
-        return _dict[section] if section in _dict else _dict
+        
+        if section in _dict:
+            return _dict[section]
+        
+        if section != "":
+            return None
+        
+        return _dict
 
     def getConfig(self) -> configparser.ConfigParser:
         self.__updateConfig()
@@ -107,7 +114,7 @@ def getConfigLoader() -> IniParser:
         _loaded_config = IniParser()
     return _loaded_config
 
-def getConfigAsDict(section:str = "") -> dict:
+def getConfigAsDict(section:str = "") -> Optional[dict]:
     return getConfigLoader().getConfigAsDict(section)
 
 def getConfig():
