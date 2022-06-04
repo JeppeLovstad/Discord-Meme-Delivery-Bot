@@ -1,23 +1,34 @@
 from contextlib import asynccontextmanager
 import psycopg as pg
 import utils.iniparser as iniparser
-
+from sshtunnelmanager import SSHTunnelManager
 
 
 class PostgreSQLDAL():
 
+    ssh_server = None
+
     def __init__(self):
         print("init called")
         self.conn = None
-        self.ssh_server = None
-        self.postgres_args, self.ssh_tunnel_args = self.__get_config__()
+        self.postgres_args = self.__get_config__()
     
     @classmethod
-    async def create(cls, autocommit=True):
+    async def create(cls, autocommit=True, ssh_tunnel=None):
         cls = PostgreSQLDAL()
         cls.autocommit = autocommit
+        if ssh_tunnel:
+            cls.update_args_for_ssh_tunnel(ssh_tunnel)
         await cls.__start__()
         return cls
+    
+    def update_args_for_ssh_tunnel(self,ssh_tunnel):
+        ssh_args = ssh_tunnel.get_ssh_tunnel_address()
+        if ssh_args:
+            self.postgres_args["host"] = ssh_args[0]
+            self.postgres_args["port"] = ssh_args[1]
+        else:
+            raise Exception("No SSH tunnel address provided")
     
     ## test if connection is established
     async def test(self):
@@ -42,76 +53,30 @@ class PostgreSQLDAL():
     
     async def __start__(self):
         if self.conn is None:
-            self.__setup_ssh_tunnel__(self.ssh_tunnel_args)
-            await self.__setup_storage_method__(self.postgres_args)
+            del self.postgres_args["use_ssh_tunnel"]
+            self.conn = await pg.AsyncConnection.connect(**self.postgres_args, autocommit=self.autocommit)
 
     def __get_config__(self):
-        config = iniparser.getConfigAsDict()
-        if "POSTGRES" not in config:
+        config = iniparser.getConfigAsDict("POSTGRES")
+        if config is None:
             raise Exception(
                 "Invalid POSTGRES configuration, must setup POSTGRES in config to use"
             )
 
-        postgres_args = config["POSTGRES"]
-        ssh_tunnel_args = config["SSH_TUNNEL"] if "SSH_TUNNEL" in config else None
+        return config
 
-        return postgres_args, ssh_tunnel_args
-
-    def __setup_ssh_tunnel__(self, ssh_tunnel_args):
-        if (
-            self.ssh_tunnel_args is not None
-            and self.postgres_args is not None
-            and self.ssh_tunnel_args["sshtunnel"]
-        ):
-            try:
-                from sshtunnel import SSHTunnelForwarder
-            except:
-                raise
-            
-            ssh_address_or_host=(ssh_tunnel_args["ssh_host"], int(ssh_tunnel_args["ssh_port"]))
-            ssh_pkey=ssh_tunnel_args["ssh_cert_location"]
-            ssh_private_key_password=ssh_tunnel_args["ssh_private_key_password"]
-            ssh_username=ssh_tunnel_args["ssh_user"]
-            remote_bind_address=(self.postgres_args["host"],int(self.postgres_args["port"]))
-            local_bind_address=(self.postgres_args["host"],int(self.postgres_args["port"]))
-            
-            try:
-                self.ssh_server = SSHTunnelForwarder(
-                    ssh_address_or_host= ssh_address_or_host,
-                    ssh_pkey=ssh_pkey,
-                    ssh_private_key_password=ssh_private_key_password,
-                    ssh_username=ssh_username,
-                    remote_bind_address=remote_bind_address,
-                    local_bind_address=local_bind_address
-                )
-
-                ## Need to update port and host if using ssh tunnel
-                if self.ssh_server is not None:
-                    self.ssh_server.start()
-                    self.postgres_args["host"] = self.ssh_server.local_bind_host
-                    self.postgres_args["port"] = self.ssh_server.local_bind_port
-
-            except:
-                print("Could not setup ssh_tunnel")
-        else:
-            print("ssh tunnel disabled or not setup")
-
-    async def __setup_storage_method__(self, postgres_args) -> None:
-        self.conn = await pg.AsyncConnection.connect(**postgres_args, autocommit=self.autocommit)
-        
     async def __close__(self):
         try:
             if self.conn is not None:
                 await self.conn.close()
-            if self.ssh_server is not None:
-                self.ssh_server.close()
             self.conn = None
         except:
             print("Something went wrong while closing database connection")
             
-
 async def run():
-    DAL = await PostgreSQLDAL.create()
+    sshman = SSHTunnelManager()
+    sshman.start_ssh_tunnel()
+    DAL = await PostgreSQLDAL.create(ssh_tunnel=sshman)
     await DAL.test()
 
 if __name__ == "__main__":
@@ -120,5 +85,6 @@ if __name__ == "__main__":
     
     if sys.platform == "win32":
         asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+
 
     asyncio.run(run())
