@@ -53,7 +53,6 @@ class PostgreSQLDAL():
     
     async def __start__(self):
         if self.conn is None:
-            del self.postgres_args["use_ssh_tunnel"]
             self.conn = await pg.AsyncConnection.connect(**self.postgres_args, autocommit=self.autocommit)
 
     def __get_config__(self):

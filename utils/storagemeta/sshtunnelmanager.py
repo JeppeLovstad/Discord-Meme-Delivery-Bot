@@ -32,7 +32,6 @@ class SSHTunnelManager():
             ssh_username             =  ssh_tunnel_args["ssh_user"]
             remote_bind_address      =  (ssh_tunnel_args["remote_bind_address"],int(ssh_tunnel_args["remote_bind_port"]))
             local_bind_address      =  (ssh_tunnel_args["remote_bind_address"],int(ssh_tunnel_args["remote_bind_port"]))
-            ##local_bind_address       =  (self.postgres_args["host"],int(self.postgres_args["port"]))
             
             try:
                 self.ssh_server = SSHTunnelForwarder(
@@ -44,7 +43,6 @@ class SSHTunnelManager():
                     local_bind_address=local_bind_address
                 )
 
-                ## Need to update port and host if using ssh tunnel
                 if self.ssh_server is not None:
                     self.ssh_server.start()
 
