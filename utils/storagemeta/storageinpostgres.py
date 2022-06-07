@@ -3,49 +3,29 @@ from storageinterface import StorageMeta
 import psycopg as pg
 import utils.iniparser as iniparser
 from postgresqldal import PostgreSQLDAL
+from sshtunnelmanager import SSHTunnelManager
 
 class StorageInPostgres(StorageMeta, metaclass=ABCMeta):
 
-    DAL = None
-    is_setup = False
+    DAL:PostgreSQLDAL 
     usage = {}
 
     def __init__(self, module: str = ""):
-        if self.DAL:
-            DAL = PostgreSQLDAL.create()
         self.module = module
         self.__register_usage__(self.module)
 
     async def __aenter__(self):
-        await self.start()
+        await self.__setup_storage_method__()
         return self
-
-    # def __get_config__(self):
-    #     config = iniparser.getConfigAsDict()
-    #     if "POSTGRES" not in config:
-    #         raise Exception(
-    #             "Invalid POSTGRES configuration, must setup POSTGRES in config to use"
-    #         )
-
-    #     postgres_args = config["POSTGRES"]
-    #     ssh_tunnel_args = config["SSH_TUNNEL"] if "SSH_TUNNEL" in config else None
-
-    #     return postgres_args, ssh_tunnel_args
-
-
-    async def __setup_storage_method__(self, postgres_args) -> None:
-        self.conn = await pg.AsyncConnection.connect(**postgres_args)
-
-    ## test if connection is established
+    
+    async def __setup_storage_method__(self) -> None:
+        if not self.DAL:
+            self.DAL = await PostgreSQLDAL.create()
+    
     async def test(self):
-        if self.conn is not None:
-            cur = self.conn.cursor()
-            await cur.execute("select VERSION()")
-            async for record in cur:
-                print(record)
-            await cur.close()
+        await self.DAL.test()
 
-    def store(
+    async def store(
         self,
         key: tuple[str, ...],
         value: object,
@@ -56,7 +36,7 @@ class StorageInPostgres(StorageMeta, metaclass=ABCMeta):
     ) -> bool:
         return True
 
-    def retrieve(
+    async def retrieve(
         self,
         key: tuple[str, ...],
         server: str = "",
@@ -66,7 +46,7 @@ class StorageInPostgres(StorageMeta, metaclass=ABCMeta):
     ) -> object:
         pass
 
-    def delete(
+    async def delete(
         self,
         key: tuple[str, ...],
         server: str = "",
@@ -75,7 +55,7 @@ class StorageInPostgres(StorageMeta, metaclass=ABCMeta):
     ) -> bool:
         return True
 
-    def store_message(
+    async def store_message(
         self,
         key: tuple[str, ...],
         value: str,
@@ -85,7 +65,7 @@ class StorageInPostgres(StorageMeta, metaclass=ABCMeta):
     ) -> bool:
         return True
 
-    def retrieve_message(
+    async def retrieve_message(
         self,
         message_id: int,
         server: str = "",
@@ -95,13 +75,13 @@ class StorageInPostgres(StorageMeta, metaclass=ABCMeta):
     ) -> str:
         return ""
 
-    def get_server(self, server_id: int):
+    async def get_server(self, server_id: int):
         pass
 
-    def get_channel(self, channel_id: int):
+    async def get_channel(self, channel_id: int):
         pass
 
-    def get_user(self, user_id: int):
+    async def get_user(self, user_id: int):
         pass
 
     async def __aexit__(self, *args):
@@ -123,11 +103,10 @@ class StorageInPostgres(StorageMeta, metaclass=ABCMeta):
             self.__unregister_usage__(self.module)
     
             if len(self.usage) == 0:
-                if self.conn is not None:
-                    await self.conn.close()
+                if self.DAL is not None:
+                    await self.DAL.close()
                 if self.ssh_server is not None:
                     self.ssh_server.close()
-                    is_setup = False
         except:
             print("Something went wrong while closing database connection")
 
