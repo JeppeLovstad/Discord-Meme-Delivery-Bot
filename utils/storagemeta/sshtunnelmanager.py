@@ -6,6 +6,8 @@ class SSHTunnelManager():
     
     ##def __init__(self):
     ##    self.ssh_tunnel_args = self.__get_config__()
+
+    is_active = False
     
     def __get_config__(self):
         config = iniparser.getConfigAsDict(section="SSH_TUNNEL")
@@ -45,7 +47,7 @@ class SSHTunnelManager():
 
                 if self.ssh_server is not None:
                     self.ssh_server.start()
-
+                    self.is_active = True
 
             except Exception as e:
                 print(e)
@@ -56,6 +58,7 @@ class SSHTunnelManager():
         try:
             if self.ssh_server is not None:
                 self.ssh_server.close()
+                self.is_active = False
         except:
             print("Something went wrong while closing ssh tunnel")
             

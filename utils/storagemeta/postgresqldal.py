@@ -6,7 +6,7 @@ from sshtunnelmanager import SSHTunnelManager
 
 class PostgreSQLDAL():
 
-    ssh_server = None
+    ssh_tunnel = None
 
     def __init__(self):
         print("init called")
@@ -18,15 +18,16 @@ class PostgreSQLDAL():
         cls = PostgreSQLDAL()
         cls.autocommit = autocommit
         if ssh_tunnel:
-            cls.update_args_for_ssh_tunnel(ssh_tunnel)
+            cls.__update_args_for_ssh_tunnel__(ssh_tunnel)
         await cls.__start__()
         return cls
     
-    def update_args_for_ssh_tunnel(self,ssh_tunnel):
+    def __update_args_for_ssh_tunnel__(self,ssh_tunnel):
         ssh_args = ssh_tunnel.get_ssh_tunnel_address()
-        if ssh_args:
+        if ssh_args and ssh_tunnel.is_active:
             self.postgres_args["host"] = ssh_args[0]
             self.postgres_args["port"] = ssh_args[1]
+            self.ssh_tunnel = ssh_tunnel
         else:
             raise Exception("No SSH tunnel address provided")
     
@@ -64,7 +65,7 @@ class PostgreSQLDAL():
 
         return config
 
-    async def __close__(self):
+    async def close(self):
         try:
             if self.conn is not None:
                 await self.conn.close()
@@ -77,6 +78,8 @@ async def run():
     sshman.start_ssh_tunnel()
     DAL = await PostgreSQLDAL.create(ssh_tunnel=sshman)
     await DAL.test()
+    await DAL.close()
+    sshman.close()
 
 if __name__ == "__main__":
     import asyncio
