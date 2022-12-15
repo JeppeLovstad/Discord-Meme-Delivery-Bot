@@ -60,7 +60,7 @@ class Admin(commands.Cog):
             await ctx.send("No changes")
         else:
             # run(["sudo", "systemctl", "restart", "discordbot.service"])
-            msg = self.module_loader.sync_changed_files()
+            msg = await self.module_loader.sync_changed_files()
             await ctx.send(
                 "Restarting modules, use restart if you changed a file not in BotModules \n"
                 + msg

@@ -55,6 +55,7 @@ class AIMemeGenerator(commands.Cog):
             self.meme_to_templateid_dict,
         ) = self.get_available_memes()
         self.error_memes_dict = {}
+        self.set_session_token()
         self.loop_get_new_sessions.change_interval(hours=24)
         self.loop_get_new_sessions.start()
 
@@ -96,14 +97,16 @@ class AIMemeGenerator(commands.Cog):
         else:
             send = self.getMemeInfo(meme_name=meme_id)
         await ctx.send(send)
-
+        
     @commands.command()
     async def meme(self, ctx, arg: str = "-1"):
         send = ""
         if arg != "-1" and arg.isdigit():
-            send = self.generateMeme(int(arg))
+            #send = self.generateMeme(int(arg))
+            send = self.getAiMeme()
         else:
-            send = self.generateMeme()
+            #send = self.generateMeme()
+            send = self.getAiMeme()
         await ctx.send(send)
 
     # ## add support for multiple channels
@@ -177,6 +180,24 @@ class AIMemeGenerator(commands.Cog):
 
         return (meme_text_dict["final_text"], template_id)
 
+    def getAiMeme(self) -> str:
+        search_url = "https://api.imgflip.com/ai_meme"
+        data = {
+            "username": self.config["imgflip_username"],
+            "password": self.config["imgflip_password"],
+        }
+
+        req = requests.post(search_url, params=data)
+        url_dict = json.loads(req.text)
+
+        if url_dict["success"]:
+            return url_dict["data"]["url"]
+        else:
+            return url_dict["error_message"]
+
+        # implement prefix trie for fast dict text lookup
+
+
     def captionMeme(self, template_id: int, meme_final_text: str) -> str:
         search_url = "https://api.imgflip.com/caption_image"
         data = {
@@ -248,8 +269,48 @@ if __name__ == "__main__":
 
     config = ConfigParser()
     config.read("config.ini")
-    bot = commands.Bot(command_prefix="!")
-    m = AIMemeGenerator(bot=bot, config=config["AIMEME"])
+
+    #ses = requests.Session()
+    #res = ses.get(url="https://imgflip.com/ajax_get_le_data")
+    #print(res.text)
+    
+    search_url = "https://api.imgflip.com/automeme"
+    data = {
+            'username':'discordaimemes',
+            'password': 'G2csK4hEntXDyEB4',
+            'text':'wtf'
+    }
+
+
+    #url_dict = json.loads(req.text)
+    
+    
+    # AI_meme_url = f"https://imgflip.com/ajax_ai_meme"
+    # AI_meme_headers = {
+    #         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:96.0) Gecko/20100101 Firefox/96.0",
+    #         "Cookie": f"iflipsess=tqvk2u1u8cp6djfmp211lt9d9f",
+    #         "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+    #         "X-Requested-With": "XMLHttpRequest",
+    #         "Accept": "application/json, text/javascript, */*; q=0.01",
+    #     }
+    # AI_meme_data = {
+    #         "use_openai": 0,
+    #         "init_text": "",
+    #         "__tok": "R0Y/tses3ktuWIcFQNH5AK7KdQj/EQvBONkwPgUgCRo=",
+    #         "__cookie_enabled": 1,
+    #     }
+    # AI_meme_data["meme_id"] = 181913649
+    
+    # req = requests.post(
+    # AI_meme_url, headers=AI_meme_headers, data=AI_meme_data
+    # )
+    # print(req.text)
+    #user_dict = json.loads(res.text)
+    #session_dict = ses.cookies.get_dict()
+    
+    
+    #bot = commands.Bot(command_prefix="!")
+    #m = AIMemeGenerator(bot=bot, config=config["AIMEME"])
     # print("Finding Neverland".capitalize())
     # print("Neverland" in "Finding Neverland")
     # print(m.getMemeInfo("Harold"))

@@ -114,7 +114,7 @@ class CustomCommandHandler(commands.Cog):
     def emojiIdentifier(self, text_with_emoji):
         custom_emoji = re.match(r"<:\w*:\d*>", text_with_emoji)
         default_emoji = (
-            emoji.emoji_lis(text_with_emoji)[0]["emoji"]
+            emoji.emoji_list(text_with_emoji)[0]["emoji"]
             if emoji.emoji_count(text_with_emoji) == 1
             else None
         )

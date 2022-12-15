@@ -55,9 +55,9 @@ class Misc(commands.Cog):
             format = "sass"
 
         if text_to_sass == "":
-            text_to_sass = await ctx.channel.history(
+            text_to_sass = [user async for user in ctx.channel.history(
                 limit=1 + Messages_to_go_back
-            ).flatten()
+                            )] 
             sassed_text = self.format_text(text_to_sass[-1].content, format)
             await ctx.send(sassed_text)
         else:

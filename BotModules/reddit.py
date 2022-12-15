@@ -33,7 +33,7 @@ if __name__ == "__main__":
 
     config = ConfigParser()
     config.read("config.ini")
-    bot = commands.Bot(command_prefix="!")
-    m = Reddit(bot=bot, config=config["REDDIT"])
+    #bot = commands.Bot(command_prefix="!")
+    #m = Reddit(bot=bot, config=config["REDDIT"])
     #m = Reddit(0,0)
-    print(m.get_reddit("programmerhumor"))
+    #print(m.get_reddit("programmerhumor"))

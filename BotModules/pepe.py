@@ -32,6 +32,6 @@ if __name__ == "__main__":
 
     config = ConfigParser()
     config.read("config.ini")
-    bot = commands.Bot(command_prefix="!")
-    m = Pepe(bot=bot, config=config["PEPE"])
-    print(m.get_pepe())
+    #bot = commands.Bot(command_prefix="!")
+    #m = Pepe(bot=bot, config=config["PEPE"])
+    #print(m.get_pepe())

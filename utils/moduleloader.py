@@ -31,10 +31,10 @@ class ModuleLoader:
         self._bot = bot
         self.__update_cogs_info_from_dict(self.__get_cogs_info_dict_from_config())
 
-    def load_cog(self, cog_name: str, force_reload: bool = False) -> str:
+    async def load_cog(self, cog_name: str, force_reload: bool = False) -> str:
         cog_name = cog_name.lower()
         if self.is_cog_enabled(cog_name) and force_reload:
-            self.unload_cog(cog_name)
+            await self.unload_cog(cog_name)
         elif self.is_cog_enabled(cog_name) and not force_reload:
             raise CogAlreadyRegistered(
                 "Cog is already loaded, set force_reload = 1 to reload"
@@ -42,15 +42,15 @@ class ModuleLoader:
 
         cog = self.__get_instantiated_cog_from_cog_name(cog_name)
         if not isinstance(cog, str):
-            self._bot.add_cog(cog)
+            await self._bot.add_cog(cog)
             return f"Cog: {cog_name} loaded"
         return f"Cog: {cog_name} could not be loaded, {cog}"
 
-    def unload_cog(self, cog_name) -> str:
+    async def unload_cog(self, cog_name) -> str:
         cog_name = cog_name.lower()
         cog_info = self.get_cog_info_from_name(cog_name)
         if cog_info and self.is_cog_enabled(cog_name):
-            self._bot.remove_cog(cog_info["module"].capitalize())
+            await self._bot.remove_cog(cog_info["module"].capitalize())
             if not self.is_cog_enabled(cog_name):
                 return f"Cog: {cog_name} removed"
             else:
@@ -64,31 +64,31 @@ class ModuleLoader:
         return cog_name.capitalize() in self._bot.cogs
 
     ### Force reload all cogs, even if file hasnt changed
-    def reload_all_cogs(self):
+    async def reload_all_cogs(self):
         self.__update_cogs_info_from_dict(self.__get_cogs_info_dict_from_config())
-        msgs = self.load_cogs(list(self.dict_cogname_info.keys()))
+        msgs = await self.load_cogs(list(self.dict_cogname_info.keys()))
         return "\n".join(msgs)
 
-    def reload_cog(self, cog_name) -> str:
-        self.unload_cog(cog_name)
-        self.load_cog(cog_name)
+    async def reload_cog(self, cog_name) -> str:
+        await self.unload_cog(cog_name)
+        await self.load_cog(cog_name)
         return f"{cog_name} reloaded"
 
-    def reload_cogs(self, cogs: list[str]) -> str:
+    async def reload_cogs(self, cogs: list[str]) -> str:
         str_list = []
-        self.unload_cogs(cogs)
-        self.load_cogs(cogs)
+        await self.unload_cogs(cogs)
+        await self.load_cogs(cogs)
         for cog_name in cogs:
             str_list.append(f"{cog_name} reloaded")
         return "\n".join(str_list)
 
-    def load_cogs(self, cogs: list[str]) -> list[str]:
+    async def load_cogs(self, cogs: list[str]) -> list[str]:
         str_list = []
         for cog_name in cogs:
-            str_list.append(self.load_cog(cog_name))
+            str_list.append(await self.load_cog(cog_name))
         return str_list
 
-    def unload_cogs(self, cogs: list[str]) -> list[str]:
+    async def unload_cogs(self, cogs: list[str]) -> list[str]:
         str_list = []
         for cog_name in cogs:
             str_list.append(self.unload_cog(cog_name))
@@ -101,7 +101,7 @@ class ModuleLoader:
             return self.dict_cogname_info.items()
 
     ### Get files that has changed and try to reload them.
-    def sync_changed_files(self):
+    async def sync_changed_files(self):
         # self.__update_cogs_info_from_dict()
         new_dict_cogname_info = self.__get_cogs_info_dict_from_config()
 
@@ -128,8 +128,8 @@ class ModuleLoader:
         print("cogs_to_unload", cogs_to_unload)
         print("cogs_to_load", cogs_to_load)
 
-        self.unload_cogs(cogs_to_unload)
-        self.reload_cogs(cogs_to_load)
+        await self.unload_cogs(cogs_to_unload)
+        await self.reload_cogs(cogs_to_load)
 
         ### update dict
         self.dict_cogname_info = new_dict_cogname_info
@@ -180,7 +180,7 @@ class ModuleLoader:
         }
         return cog_info
 
-    def __get_instantiated_cog_from_cog_name(self, cog_name: str) -> object | str:
+    def __get_instantiated_cog_from_cog_name(self, cog_name: str) -> commands.Cog | str:
         cog_info = self.get_cog_info_from_name(cog_name)
         if cog_info is not None:
             cog = self.__get_instantiated_cog_from_cog_info(cog_info)
@@ -189,7 +189,7 @@ class ModuleLoader:
 
         return cog
 
-    def __get_instantiated_cog_from_cog_info(self, cog_info: dict) -> object | str:
+    def __get_instantiated_cog_from_cog_info(self, cog_info: dict) -> commands.Cog | str:
         error_message = instantiated_cog = None
 
         # expand the cog_info
@@ -219,7 +219,7 @@ class ModuleLoader:
         if not error_message and instantiated_cog:
             return instantiated_cog
         else:
-            return error_message
+            return str(error_message)
 
     def __get_bot_module_mdate(self, module: str):
         file_path = f"{module}.py"
@@ -259,17 +259,17 @@ class ModuleLoader:
         return _new_module
 
 
-if __name__ == "__main__":
-    bot = commands.Bot(command_prefix="!")
-    m = get_module_loader(bot=bot)
-    from time import time
+#if __name__ == "__main__":
+    #bot = commands.Bot(command_prefix="!")
+    # m = get_module_loader(bot=bot)
+    # from time import time
 
-    print(m.dict_cogname_info, sep="\n")
-    print(bot.cogs)
-    print(m.reload_all_cogs())
-    # utime("BotModules/googler.py", (time(), time()))
-    print(m.unload_cog("aimeme"))
-    print()
+    # print(m.dict_cogname_info, sep="\n")
+    # print(bot.cogs)
+    # print(m.reload_all_cogs())
+    # # utime("BotModules/googler.py", (time(), time()))
+    # print(m.unload_cog("aimeme"))
+    # print()
 
     # print(m.load_cog("Googler"))
     # print(m.unload_cog("Googler"))
@@ -278,7 +278,7 @@ if __name__ == "__main__":
     # print(m.unload_cog("Googler"))
     # print(m.load_cog("Googler"))
 
-    print(bot.cogs)
+    # print(bot.cogs)
     # print(bot.cogs, bot.commands)
     # print(m.dict_cogname_info["Googler"], sep="\n")
     # print(m.unload_cog("d"))

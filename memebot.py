@@ -1,3 +1,4 @@
+import asyncio
 from discord.ext import commands
 from utils.moduleloader import get_module_loader
 
@@ -6,14 +7,18 @@ class MemeBot:
     bot: commands.Bot
     command_prefix: str
 
+    async def loadModules(self, bot):
+    #def __ainit__(self, config: dict, bot: commands.Bot):
+        print( await self.moduleLoader.reload_all_cogs())
+
     def __init__(self, config: dict, bot: commands.Bot):
         self.bot = bot
         self.moduleLoader = get_module_loader(bot)
-        print(self.moduleLoader.reload_all_cogs())
 
+        asyncio.run(self.loadModules(bot))
         self.registerDefaultFunctions(bot)
         bot.run(config["DISCORD"]["bot_token"])
-
+        
     def registerDefaultFunctions(self, bot: commands.Bot):
         bot.event(self.on_ready)
         bot.event(self.on_command_error)
