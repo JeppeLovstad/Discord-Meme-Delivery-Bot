@@ -12,6 +12,7 @@ class GPT3Bot(commands.Cog):
     def get_ai_response(self, prompt: str) -> str:
         response = openai.Completion.create(
             model="text-davinci-002",
+            max_tokens=40,
             prompt=prompt,
             temperature=0.6,
         )
