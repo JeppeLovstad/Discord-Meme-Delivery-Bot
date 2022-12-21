@@ -12,7 +12,7 @@ class GPT3Bot(commands.Cog):
     def get_ai_response(self, prompt: str) -> str:
         response = openai.Completion.create(
             model="text-davinci-002",
-            max_tokens=40,
+            max_tokens=64,
             prompt=prompt,
             temperature=0.6,
         )
@@ -31,17 +31,6 @@ class GPT3Bot(commands.Cog):
             await ctx.send("Input invalid try again,")
         else:
             await ctx.send(self.get_ai_response(prompt))
-
-def generate_prompt(animal):
-    return """Suggest three names for an animal that is a superhero.
-            Animal: Cat
-            Names: Captain Sharpclaw, Agent Fluffball, The Incredible Feline
-            Animal: Dog
-            Names: Ruff the Protector, Wonder Canine, Sir Barks-a-Lot
-            Animal: {}
-            Names:""".format(animal.capitalize())
-        
-    
 
 if __name__ == "__main__":
 
